@@ -23,3 +23,8 @@ type TextItem struct {
 	Meta  map[string]string
 }
 
+// BinaryItem holds arbitrary binary information.
+type BinaryItem struct {
+	Value []byte
+	Meta  map[string]string
+}
