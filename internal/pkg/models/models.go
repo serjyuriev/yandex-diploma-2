@@ -8,3 +8,12 @@ type LoginPasswordItem struct {
 	Meta     map[string]string
 }
 
+// BankCardItem holds bank card related information.
+type BankCardItem struct {
+	Number           string
+	Holder           string
+	Expires          string
+	CardSecurityCode int
+	Meta             map[string]string
+}
+
