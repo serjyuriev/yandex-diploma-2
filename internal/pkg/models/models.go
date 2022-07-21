@@ -17,3 +17,9 @@ type BankCardItem struct {
 	Meta             map[string]string
 }
 
+// TextItem holds arbitrary text information.
+type TextItem struct {
+	Value string
+	Meta  map[string]string
+}
+
