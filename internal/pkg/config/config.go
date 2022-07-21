@@ -6,3 +6,11 @@ type ServerConfig struct {
 	Port           int    `yaml:"port"`
 	DataSourceName string `yaml:"dsn"`
 }
+
+// ClientConfig holds client application's configuration.
+type ClientConfig struct {
+	Server struct {
+		Address string `yaml:"address"`
+		Port    int    `yaml:"port"`
+	} `yaml:"server"`
+}
