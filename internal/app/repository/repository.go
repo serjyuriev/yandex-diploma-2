@@ -69,7 +69,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
 	}
 
 	r.logger.Debug().Str("user", user.Login).Msgf(
-		"new user was inserted to the database with ObjectID = %v",
+		"new user was inserted to the database with %v",
 		result.InsertedID,
 	)
 	return nil
