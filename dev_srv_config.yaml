@@ -1,0 +1,8 @@
+database:
+  address: mongodb://gokpr:g0k33p3r@mongo:27017
+  name: gokeeper
+listen:
+  address: gokeeper
+  port: 8080
+salt: g0k33peR
+is_debug: true
