@@ -54,12 +54,13 @@ func NewServer() (*Server, error) {
 
 // Start launches app's server.
 func (s *Server) Start() error {
-	listen, err := net.Listen("tcp", fmt.Sprintf("%s:%d", s.cfg.Address, s.cfg.Port))
+	fullAddress := fmt.Sprintf("%s:%d", s.cfg.Listen.Address, s.cfg.Listen.Port)
+	listen, err := net.Listen("tcp", fullAddress)
 	if err != nil {
 		s.logger.
 			Err(err).
 			Caller().
-			Msgf("unable to listen on %s:%d", s.cfg.Address, s.cfg.Port)
+			Msgf("unable to listen on %s", fullAddress)
 		return err
 	}
 	srv := grpc.NewServer(grpc.KeepaliveParams(
@@ -69,7 +70,7 @@ func (s *Server) Start() error {
 	))
 	g.RegisterGokeeperServer(srv, s.rpc)
 
-	s.logger.Info().Msgf("go-keeper server listening on tcp %s:%d", s.cfg.Address, s.cfg.Port)
+	s.logger.Info().Msgf("go-keeper server listening on tcp %s", fullAddress)
 	if err := srv.Serve(listen); err != nil {
 		s.logger.
 			Err(err).
