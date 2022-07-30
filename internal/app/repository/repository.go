@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 
 	"github.com/rs/zerolog"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
@@ -9,6 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+var (
+	ErrNoUser = errors.New("there is no such user in the database")
 )
 
 // Repository holds objects for data layer implementation.
@@ -73,4 +78,43 @@ func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
 		result.InsertedID,
 	)
 	return nil
+}
+
+// ReadUserByLogin searches the database for a user
+// with provided login, returning found user or ErrNoUser.
+func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models.User, error) {
+	r.logger.Debug().Str("user", login).Msg("getting users collection")
+	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
+
+	r.logger.Debug().Str("user", login).Msg("preparing filter")
+	filter := bson.D{{Key: "login", Value: login}}
+
+	r.logger.Debug().Str("user", login).Msg("searching for user in the database")
+	result := collection.FindOne(ctx, filter)
+	if result.Err() != nil {
+		if result.Err() == mongo.ErrNoDocuments {
+			r.logger.Debug().Str("user", login).Msg("no such user in the database")
+			return nil, ErrNoUser
+		}
+		r.logger.
+			Err(result.Err()).
+			Caller().
+			Str("user", login).
+			Msg("unable to perform read operation in the database")
+		return nil, result.Err()
+	}
+
+	r.logger.Debug().Str("user", login).Msg("processing query result")
+	var user models.User
+	if err := result.Decode(&user); err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", login).
+			Msg("unable to decode query result")
+		return nil, err
+	}
+
+	r.logger.Debug().Str("user", login).Msg("user was found in the database")
+	return &user, nil
 }
