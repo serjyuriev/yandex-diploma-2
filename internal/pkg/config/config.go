@@ -1,6 +1,7 @@
 package config
 
 import (
+	"flag"
 	"os"
 	"sync"
 
@@ -26,8 +27,6 @@ type ClientConfig struct {
 }
 
 var (
-	Path string
-
 	once      sync.Once
 	clientCfg *ClientConfig
 	serverCfg *ServerConfig
@@ -37,9 +36,12 @@ var (
 // and then always returns copy of filled server configuration object.
 func GetServerConfig() ServerConfig {
 	once.Do(func() {
-		serverCfg = &ServerConfig{}
+		var configPath string
+		flag.StringVar(&configPath, "c", "", "yaml config file")
+		flag.Parse()
 
-		file, err := os.ReadFile(Path)
+		serverCfg = &ServerConfig{}
+		file, err := os.ReadFile(configPath)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to open config file")
 		}
@@ -56,9 +58,12 @@ func GetServerConfig() ServerConfig {
 // and then always returns copy of filled client configuration object.
 func GetClientConfig() ClientConfig {
 	once.Do(func() {
-		clientCfg = &ClientConfig{}
+		var configPath string
+		flag.StringVar(&configPath, "c", "", "yaml config file")
+		flag.Parse()
 
-		file, err := os.ReadFile(Path)
+		clientCfg = &ClientConfig{}
+		file, err := os.ReadFile(configPath)
 		if err != nil {
 			log.Fatal().Err(err).Msg("unable to open config file")
 		}
