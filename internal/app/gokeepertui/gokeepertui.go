@@ -107,6 +107,29 @@ func (c *Client) SignUpUser(ctx context.Context, login, password string) (string
 	return resp.UserID, nil
 }
 
+func (c *Client) LoginUser(ctx context.Context, login, password string) (string, error) {
+	user := &g.User{
+		Login:    login,
+		Password: password,
+	}
+	resp, err := c.rpc.LoginUser(ctx, &g.LoginUserRequest{User: user})
+	if err != nil {
+		c.logger.
+			Err(err).
+			Caller().
+			Msg("unable to login user")
+		return "", err
+	}
+	if resp.Error != "" {
+		c.logger.
+			Error().
+			Caller().
+			Msg(resp.Error)
+		return "", errors.New(resp.Error)
+	}
+	return resp.UserID, nil
+}
+
 func (c *Client) DrawAuthWindow() (tui.UI, error) {
 	user := tui.NewEntry()
 	user.SetFocused(true)
@@ -118,19 +141,27 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 	form.AppendRow(tui.NewLabel("User"), tui.NewLabel("Password"))
 	form.AppendRow(user, password)
 
-	status := tui.NewStatusBar("Connected to go-keeper server.")
+	status := tui.NewStatusBar("Not logged in.")
 
 	login := tui.NewButton("[Login]")
 	login.OnActivated(func(b *tui.Button) {
-		id, err := c.SignUpUser(context.TODO(), user.Text(), password.Text())
+		id, err := c.LoginUser(context.TODO(), user.Text(), password.Text())
 		if err != nil {
-			status.SetText(err.Error())
+			status.SetText(fmt.Sprintf("Unable to login: %s", err.Error()))
 			return
 		}
 		status.SetText(fmt.Sprintf("Logged in, userID = %s", id))
 	})
 
-	register := tui.NewButton("[Register]")
+	register := tui.NewButton("[Sign Up]")
+	register.OnActivated(func(*tui.Button) {
+		id, err := c.SignUpUser(context.TODO(), user.Text(), password.Text())
+		if err != nil {
+			status.SetText(fmt.Sprintf("Unable to sign up: %s", err.Error()))
+			return
+		}
+		status.SetText(fmt.Sprintf("Signed up, userID = %s", id))
+	})
 
 	buttons := tui.NewHBox(
 		tui.NewSpacer(),
@@ -140,7 +171,7 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 
 	window := tui.NewVBox(
 		tui.NewPadder(10, 1, tui.NewLabel(logo)),
-		tui.NewPadder(12, 0, tui.NewLabel("Welcome to go-keeper! Login or register.")),
+		tui.NewPadder(12, 0, tui.NewLabel("Welcome to go-keeper! Login or sign up.")),
 		tui.NewPadder(1, 1, form),
 		buttons,
 	)
