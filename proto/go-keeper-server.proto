@@ -6,10 +6,13 @@ package proto.server;
 
 option go_package = "proto/server";
 
-message SignUpUserRequest {
+message User {
     string login = 1;
     string password = 2;
-    string error = 3;
+}
+
+message SignUpUserRequest {
+    User user = 1;
 }
 
 message SignUpUserResponse {
