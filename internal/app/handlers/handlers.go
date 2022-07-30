@@ -68,13 +68,13 @@ func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignU
 	}
 	res := new(g.SignUpUserResponse)
 
-	r.logger.Debug().Msg("passing user's info to service layer")
+	r.logger.Debug().Str("user", in.User.Login).Msg("passing user's info to service layer")
 	userID, err := r.svc.SignUpUser(ctx, user)
 	if err != nil {
 		r.logger.
 			Err(err).
 			Caller().
-			Str("login", user.Login).
+			Str("user", user.Login).
 			Msg("unable to sign user up")
 		res.UserID = ""
 		res.Error = err.Error()
