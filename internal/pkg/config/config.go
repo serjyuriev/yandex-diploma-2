@@ -14,6 +14,7 @@ type ServerConfig struct {
 	Address        string `yaml:"address"`
 	Port           int    `yaml:"port"`
 	DataSourceName string `yaml:"dsn"`
+	Salt           string `yaml:"salt"`
 	IsDebug        bool   `yaml:"is_debug"`
 }
 
