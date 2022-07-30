@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"github.com/rs/zerolog/log"
 
 	"github.com/serjyuriev/yandex-diploma-2/internal/app/gokeepersrv"
 )
@@ -9,10 +9,10 @@ import (
 func main() {
 	srv, err := gokeepersrv.NewServer()
 	if err != nil {
-		log.Fatalf("unable to initialize server: %v", err)
+		log.Fatal().Err(err).Msg("unable to initialize new server")
 	}
 
 	if err = srv.Start(); err != nil {
-		log.Fatalf("unable to start server: %v", err)
+		log.Fatal().Err(err).Msg("unable to start server")
 	}
 }
