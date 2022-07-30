@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  postgres:
+  mongo:
     image: mongo:5.0.9
     container_name: mongo
     environment:
@@ -9,7 +9,7 @@ services:
       - MONGO_INITDB_DATABASE=gokeeper
     volumes:
       - './mongo:/data/db'
-  gophermart:
+  gokeeper:
     build:
       dockerfile: Dockerfile
       context: .

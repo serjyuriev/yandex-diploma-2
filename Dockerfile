@@ -8,4 +8,4 @@ COPY . .
 
 RUN go build -o main ./cmd/go-keeper-server
 
-CMD [ "/app/main" ]
+CMD [ "/app/main", "-c", "dev_srv_config.yaml" ]
