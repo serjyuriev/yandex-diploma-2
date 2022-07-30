@@ -1,0 +1,20 @@
+version: "3.9"
+services:
+  postgres:
+    image: mongo:5.0.9
+    container_name: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=gokpr
+      - MONGO_INITDB_ROOT_PASSWORD=g0k33p3r
+      - MONGO_INITDB_DATABASE=gokeeper
+    volumes:
+      - './mongo:/data/db'
+  gophermart:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    container_name: gokeeper
+    ports:
+      - 8080:8080
+    depends_on:
+      - mongo

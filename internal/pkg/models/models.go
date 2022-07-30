@@ -1,5 +1,20 @@
 package models
 
+import (
+	"github.com/google/uuid"
+)
+
+// User holds information about app's user.
+type User struct {
+	ID        uuid.UUID            `json:"id" bson:"id"`
+	Login     string               `json:"login" bson:"login"`
+	Password  string               `json:"password" bson:"password"`
+	Logins    []*LoginPasswordItem `json:"logins" bson:"logins"`
+	BankCards []*BankCardItem      `json:"bank_cards" bson:"bank_cards"`
+	Texts     []*TextItem          `json:"texts" bson:"texts"`
+	Binaries  []*BinaryItem        `json:"binaries" bson:"binaries"`
+}
+
 // LoginPasswordItem holds information about
 // single login-password entry.
 type LoginPasswordItem struct {
