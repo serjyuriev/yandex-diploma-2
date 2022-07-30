@@ -44,6 +44,6 @@ func NewRepository(logger zerolog.Logger) (*Repository, error) {
 }
 
 // CreateUser adds new user entry to the database.
-func (r *Repository) CreateUser(ctx context.Context, user models.User) error {
+func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
 	return errNotImplemented
 }
