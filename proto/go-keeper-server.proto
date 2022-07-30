@@ -20,6 +20,16 @@ message SignUpUserResponse {
     string error = 2;
 }
 
+message LoginUserRequest {
+    User user = 1;
+}
+
+message LoginUserResponse {
+    string userID = 1;
+    string error = 2;
+}
+
 service Gokeeper {
     rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
+    rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
 }
