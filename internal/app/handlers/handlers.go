@@ -83,3 +83,31 @@ func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignU
 	res.Error = ""
 	return res, nil
 }
+
+// LoginUser logins existing user.
+func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUserResponse, error) {
+	r.logger.Info().Str("user", in.User.Login).Msg("received user login request")
+	user := &models.User{
+		Login:    in.User.Login,
+		Password: in.User.Password,
+	}
+	res := new(g.LoginUserResponse)
+
+	r.logger.Debug().Str("user", in.User.Login).Msg("passing user's info to service layer")
+	userID, err := r.svc.LoginUser(ctx, user)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", user.Login).
+			Msg("unable to login user")
+		res.UserID = ""
+		res.Error = err.Error()
+		return res, err
+	}
+
+	r.logger.Info().Str("user", in.User.Login).Msg("user was successfully logged in")
+	res.UserID = userID
+	res.Error = ""
+	return res, nil
+}

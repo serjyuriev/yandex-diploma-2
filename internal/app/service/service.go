@@ -14,7 +14,9 @@ import (
 )
 
 var (
-	ErrUserExists = errors.New("user already exists")
+	ErrInvalidCredentials = errors.New("login and/or password incorrect")
+	ErrUserExists         = errors.New("user already exists")
+	ErrUserNotExists      = errors.New("user doesn't exist")
 )
 
 // Service holds objects for service layer implementation.
@@ -74,6 +76,39 @@ func (s *Service) SignUpUser(ctx context.Context, user *models.User) (string, er
 	}
 
 	return user.ID.String(), nil
+}
+
+// LoginUser checks whether user exists in the database and
+// if user's credentials are equals, logins user.
+func (s *Service) LoginUser(ctx context.Context, user *models.User) (string, error) {
+	s.logger.Debug().Str("user", user.Login).Msg("checking if such user exists")
+	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
+	if err != nil {
+		if err != repository.ErrNoUser {
+			s.logger.
+				Err(err).
+				Caller().
+				Str("user", user.Login).
+				Msg("unable to check if user exists")
+			return "", err
+		} else {
+			s.logger.Info().Str("user", user.Login).Msg("user with provided login doesn't exist in the system")
+			return "", ErrUserNotExists
+		}
+	}
+	s.logger.Debug().Str("user", user.Login).Msg("user with provided login exists")
+
+	s.logger.Debug().Str("user", user.Login).Msg("hashing provided user's password")
+	user.Password = s.hashUserPassword(user.Password)
+
+	s.logger.Debug().Str("user", user.Login).Msg("checking credentials")
+	if user.Login == dbUser.Login && user.Password == dbUser.Password {
+		s.logger.Debug().Str("user", user.Login).Msg("provided credentials are correct")
+		return dbUser.ID.String(), nil
+	}
+
+	s.logger.Debug().Str("user", user.Login).Msg("provided credentials aren't correct")
+	return "", ErrInvalidCredentials
 }
 
 // hashUserPassword returns hashed with sha256 algorythm password.
