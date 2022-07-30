@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 
 	"github.com/rs/zerolog"
 
@@ -12,8 +11,6 @@ import (
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/models"
 	g "github.com/serjyuriev/yandex-diploma-2/proto"
 )
-
-var errNotImplemented = errors.New("not implemented yet")
 
 // RPC holds objects for grpc implementation.
 type RPC struct {

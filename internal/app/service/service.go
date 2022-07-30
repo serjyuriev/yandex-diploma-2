@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -10,6 +11,10 @@ import (
 	"github.com/serjyuriev/yandex-diploma-2/internal/app/repository"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/models"
+)
+
+var (
+	ErrUserExists = errors.New("user already exists")
 )
 
 // Service holds objects for service layer implementation.
@@ -35,6 +40,23 @@ func NewService(logger zerolog.Logger, repo *repository.Repository) (*Service, e
 // SignUpUser hashes user password and adds user to the database,
 // returning user's uuid.
 func (s *Service) SignUpUser(ctx context.Context, user *models.User) (string, error) {
+	s.logger.Debug().Str("user", user.Login).Msg("checking if such user already exists")
+	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
+	if err != nil {
+		if err != repository.ErrNoUser {
+			s.logger.
+				Err(err).
+				Caller().
+				Str("user", user.Login).
+				Msg("unable to check if user already exists")
+			return "", err
+		}
+	}
+	if err == nil && user.Login == dbUser.Login {
+		s.logger.Info().Str("user", user.Login).Msg("user with provided login already exists in the system")
+		return "", ErrUserExists
+	}
+
 	s.logger.Debug().Str("user", user.Login).Msg("generating user's uuid")
 	user.ID = uuid.New()
 
