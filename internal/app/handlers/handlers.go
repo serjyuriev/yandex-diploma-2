@@ -9,6 +9,7 @@ import (
 	"github.com/serjyuriev/yandex-diploma-2/internal/app/repository"
 	"github.com/serjyuriev/yandex-diploma-2/internal/app/service"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
+	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/models"
 	g "github.com/serjyuriev/yandex-diploma-2/proto"
 )
 
@@ -58,7 +59,30 @@ func MakeRPC(logger zerolog.Logger) (*RPC, error) {
 	}, nil
 }
 
-// SignUpUser sig.
+// SignUpUser signs new user up.
 func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignUpUserResponse, error) {
-	return nil, errNotImplemented
+	r.logger.Info().Str("user", in.User.Login).Msg("received new user sign up request")
+	user := &models.User{
+		Login:    in.User.Login,
+		Password: in.User.Password,
+	}
+	res := new(g.SignUpUserResponse)
+
+	r.logger.Debug().Msg("passing user's info to service layer")
+	userID, err := r.svc.SignUpUser(ctx, user)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("login", user.Login).
+			Msg("unable to sign user up")
+		res.UserID = ""
+		res.Error = err.Error()
+		return res, err
+	}
+
+	r.logger.Info().Str("user", in.User.Login).Msg("new user was successfully signed up")
+	res.UserID = userID
+	res.Error = ""
+	return res, nil
 }
