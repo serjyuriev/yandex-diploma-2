@@ -11,6 +11,12 @@ message User {
     string password = 2;
 }
 
+message LoginItem {
+    string login = 1;
+    string password = 2;
+    map<string, string> meta = 3;
+}
+
 message SignUpUserRequest {
     User user = 1;
 }
@@ -29,7 +35,17 @@ message LoginUserResponse {
     string error = 2;
 }
 
+message AddLoginItemRequest {
+    LoginItem item = 1;
+    string userID = 2;
+}
+
+message AddLoginItemResponse {
+    string error = 1;
+}
+
 service Gokeeper {
     rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
     rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+    rpc AddLoginItem(AddLoginItemRequest) returns (AddLoginItemResponse);
 }

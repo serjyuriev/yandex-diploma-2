@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type GokeeperClient interface {
 	SignUpUser(ctx context.Context, in *SignUpUserRequest, opts ...grpc.CallOption) (*SignUpUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
+	AddLoginItem(ctx context.Context, in *AddLoginItemRequest, opts ...grpc.CallOption) (*AddLoginItemResponse, error)
 }
 
 type gokeeperClient struct {
@@ -52,12 +53,22 @@ func (c *gokeeperClient) LoginUser(ctx context.Context, in *LoginUserRequest, op
 	return out, nil
 }
 
+func (c *gokeeperClient) AddLoginItem(ctx context.Context, in *AddLoginItemRequest, opts ...grpc.CallOption) (*AddLoginItemResponse, error) {
+	out := new(AddLoginItemResponse)
+	err := c.cc.Invoke(ctx, "/proto.server.Gokeeper/AddLoginItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GokeeperServer is the server API for Gokeeper service.
 // All implementations must embed UnimplementedGokeeperServer
 // for forward compatibility
 type GokeeperServer interface {
 	SignUpUser(context.Context, *SignUpUserRequest) (*SignUpUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
+	AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error)
 	mustEmbedUnimplementedGokeeperServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedGokeeperServer) SignUpUser(context.Context, *SignUpUserReques
 }
 func (UnimplementedGokeeperServer) LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginUser not implemented")
+}
+func (UnimplementedGokeeperServer) AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddLoginItem not implemented")
 }
 func (UnimplementedGokeeperServer) mustEmbedUnimplementedGokeeperServer() {}
 
@@ -120,6 +134,24 @@ func _Gokeeper_LoginUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Gokeeper_AddLoginItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddLoginItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GokeeperServer).AddLoginItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.server.Gokeeper/AddLoginItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GokeeperServer).AddLoginItem(ctx, req.(*AddLoginItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Gokeeper_ServiceDesc is the grpc.ServiceDesc for Gokeeper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var Gokeeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginUser",
 			Handler:    _Gokeeper_LoginUser_Handler,
+		},
+		{
+			MethodName: "AddLoginItem",
+			Handler:    _Gokeeper_AddLoginItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
