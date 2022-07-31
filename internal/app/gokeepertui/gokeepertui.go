@@ -21,6 +21,8 @@ var logo = `
   |_  |___|   |_,_|___|___|  _|___|_|  
   |___|                   |_|          `
 
+var userID string
+
 // Client holds app's client-side related objects.
 type Client struct {
 	cfg    config.ClientConfig
@@ -130,6 +132,33 @@ func (c *Client) LoginUser(ctx context.Context, login, password string) (string,
 	return resp.UserID, nil
 }
 
+func (c *Client) AddLoginItem(ctx context.Context, login, password, userID string, meta map[string]string) error {
+	loginItem := &g.LoginItem{
+		Login:    login,
+		Password: password,
+		Meta:     meta,
+	}
+	resp, err := c.rpc.AddLoginItem(ctx, &g.AddLoginItemRequest{
+		Item:   loginItem,
+		UserID: userID,
+	})
+	if err != nil {
+		c.logger.
+			Err(err).
+			Caller().
+			Msg("unable to add login item")
+		return err
+	}
+	if resp.Error != "" {
+		c.logger.
+			Error().
+			Caller().
+			Msg(resp.Error)
+		return errors.New(resp.Error)
+	}
+	return nil
+}
+
 func (c *Client) DrawAuthWindow() (tui.UI, error) {
 	user := tui.NewEntry()
 	user.SetFocused(true)
@@ -151,6 +180,7 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 			return
 		}
 		status.SetText(fmt.Sprintf("Logged in, userID = %s", id))
+		userID = id
 	})
 
 	register := tui.NewButton("[Sign Up]")
@@ -163,10 +193,22 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 		status.SetText(fmt.Sprintf("Signed up, userID = %s", id))
 	})
 
+	addLogin := tui.NewButton("[Add Login]")
+	addLogin.OnActivated(func(*tui.Button) {
+		if err := c.AddLoginItem(context.TODO(), user.Text(), password.Text(), userID, map[string]string{
+			"testing": "onetwothree",
+		}); err != nil {
+			status.SetText(fmt.Sprintf("Unable to add new item: %s", err.Error()))
+			return
+		}
+		status.SetText("Login item was added")
+	})
+
 	buttons := tui.NewHBox(
 		tui.NewSpacer(),
 		tui.NewPadder(1, 0, login),
 		tui.NewPadder(1, 0, register),
+		tui.NewPadder(1, 0, addLogin),
 	)
 
 	window := tui.NewVBox(
@@ -189,7 +231,7 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 		status,
 	)
 
-	tui.DefaultFocusChain.Set(user, password, login, register)
+	tui.DefaultFocusChain.Set(user, password, login, register, addLogin)
 
 	ui, err := tui.New(root)
 	if err != nil {
