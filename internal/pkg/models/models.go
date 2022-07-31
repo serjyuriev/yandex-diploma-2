@@ -6,40 +6,40 @@ import (
 
 // User holds information about app's user.
 type User struct {
-	ID        uuid.UUID            `json:"id" bson:"id"`
-	Login     string               `json:"login" bson:"login"`
-	Password  string               `json:"password" bson:"password"`
-	Logins    []*LoginPasswordItem `json:"logins" bson:"logins"`
-	BankCards []*BankCardItem      `json:"bank_cards" bson:"bank_cards"`
-	Texts     []*TextItem          `json:"texts" bson:"texts"`
-	Binaries  []*BinaryItem        `json:"binaries" bson:"binaries"`
+	ID        uuid.UUID            `bson:"id"`
+	Login     string               `bson:"login"`
+	Password  string               `bson:"password"`
+	Logins    []*LoginPasswordItem `bson:"logins"`
+	BankCards []*BankCardItem      `bson:"bank_cards"`
+	Texts     []*TextItem          `bson:"texts"`
+	Binaries  []*BinaryItem        `bson:"binaries"`
 }
 
 // LoginPasswordItem holds information about
 // single login-password entry.
 type LoginPasswordItem struct {
-	Login    string
-	Password string
-	Meta     map[string]string
+	Login    string            `bson:"login"`
+	Password string            `bson:"password"`
+	Meta     map[string]string `bson:"meta"`
 }
 
 // BankCardItem holds bank card related information.
 type BankCardItem struct {
-	Number           string
-	Holder           string
-	Expires          string
-	CardSecurityCode int
-	Meta             map[string]string
+	Number           string            `bson:"number"`
+	Holder           string            `bson:"holder"`
+	Expires          string            `bson:"expires"`
+	CardSecurityCode int               `bson:"csc"`
+	Meta             map[string]string `bson:"meta"`
 }
 
 // TextItem holds arbitrary text information.
 type TextItem struct {
-	Value string
-	Meta  map[string]string
+	Value string            `bson:"value"`
+	Meta  map[string]string `bson:"meta"`
 }
 
 // BinaryItem holds arbitrary binary information.
 type BinaryItem struct {
-	Value []byte
-	Meta  map[string]string
+	Value []byte            `bson:"value"`
+	Meta  map[string]string `bson:"meta"`
 }
