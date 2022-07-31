@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/models"
@@ -117,4 +118,35 @@ func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models
 
 	r.logger.Debug().Str("user", login).Msg("user was found in the database")
 	return &user, nil
+}
+
+// CreateLoginItem adds new login item entry to the database.
+func (r *Repository) CreateLoginItem(ctx context.Context, item *models.LoginPasswordItem, userID uuid.UUID) error {
+	id := userID.String()
+	r.logger.Debug().Str("user", id).Msg("getting users collection")
+	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
+
+	r.logger.Debug().Str("user", id).Msg("preparing filter")
+	filter := bson.D{{Key: "id", Value: userID}}
+
+	r.logger.Debug().Str("user", id).Msg("preparing update")
+	update := bson.D{{Key: "$push", Value: bson.D{{Key: "logins", Value: item}}}}
+
+	r.logger.Debug().Str("user", id).Msg("updating user's login items")
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", id).
+			Msg("unable to update user's login items")
+		return err
+	}
+
+	r.logger.Debug().Str("user", id).Msgf(
+		"matched %d docs, updated %d docs",
+		result.MatchedCount,
+		result.ModifiedCount,
+	)
+	return nil
 }

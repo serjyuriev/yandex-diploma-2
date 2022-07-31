@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog"
 
 	"github.com/serjyuriev/yandex-diploma-2/internal/app/repository"
@@ -60,8 +61,12 @@ func MakeRPC(logger zerolog.Logger) (*RPC, error) {
 func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignUpUserResponse, error) {
 	r.logger.Info().Str("user", in.User.Login).Msg("received new user sign up request")
 	user := &models.User{
-		Login:    in.User.Login,
-		Password: in.User.Password,
+		Login:     in.User.Login,
+		Password:  in.User.Password,
+		Logins:    make([]*models.LoginPasswordItem, 0),
+		BankCards: make([]*models.BankCardItem, 0),
+		Texts:     make([]*models.TextItem, 0),
+		Binaries:  make([]*models.BinaryItem, 0),
 	}
 	res := new(g.SignUpUserResponse)
 
@@ -108,6 +113,44 @@ func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUs
 
 	r.logger.Info().Str("user", in.User.Login).Msg("user was successfully logged in")
 	res.UserID = userID
+	res.Error = ""
+	return res, nil
+}
+
+// AddLoginItem adds new login entry in the user vault.
+func (r *RPC) AddLoginItem(ctx context.Context, in *g.AddLoginItemRequest) (*g.AddLoginItemResponse, error) {
+	r.logger.Info().Str("user", in.UserID).Msg("received new login item")
+	login := &models.LoginPasswordItem{
+		Login:    in.Item.Login,
+		Password: in.Item.Password,
+		Meta:     in.Item.Meta,
+	}
+	res := new(g.AddLoginItemResponse)
+
+	r.logger.Debug().Str("user", in.UserID).Msg("parsing user uuid")
+	userID, err := uuid.Parse(in.UserID)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", in.UserID).
+			Msg("unable to parse user uuid")
+		res.Error = err.Error()
+		return res, err
+	}
+
+	r.logger.Debug().Str("user", in.UserID).Msg("passing new login item to data layer")
+	if err := r.repo.CreateLoginItem(ctx, login, userID); err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", in.UserID).
+			Msg("unable to create new login item")
+		res.Error = err.Error()
+		return res, err
+	}
+
+	r.logger.Info().Str("user", in.UserID).Msg("login item was successfully added")
 	res.Error = ""
 	return res, nil
 }
