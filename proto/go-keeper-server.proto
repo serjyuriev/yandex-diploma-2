@@ -17,6 +17,24 @@ message LoginItem {
     map<string, string> meta = 3;
 }
 
+message BankCardItem {
+    string number = 1;
+    string holder = 2;
+    string expires = 3;
+    int32 cardSecurityCode = 4;
+    map<string, string> meta = 5;
+}
+
+message TextItem {
+    string value = 1;
+    map<string, string> meta = 2;
+}
+
+message BinaryItem {
+    bytes value = 1;
+    map<string, string> meta = 2;
+}
+
 message SignUpUserRequest {
     User user = 1;
 }
@@ -44,8 +62,38 @@ message AddLoginItemResponse {
     string error = 1;
 }
 
+message AddBankCardItemRequest {
+    BankCardItem item = 1;
+    string userID = 2;
+}
+
+message AddBankCardItemResponse {
+    string error = 1;
+}
+
+message AddTextItemRequest {
+    TextItem item = 1;
+    string userID = 2;
+}
+
+message AddTextItemResponse {
+    string error = 1;
+}
+
+message AddBinaryItemRequest {
+    BinaryItem item = 1;
+    string userID = 2;
+}
+
+message AddBinaryItemResponse {
+    string error = 1;
+}
+
 service Gokeeper {
     rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
     rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
     rpc AddLoginItem(AddLoginItemRequest) returns (AddLoginItemResponse);
+    rpc AddBankCardItem(AddBankCardItemRequest) returns (AddBankCardItemResponse);
+    rpc AddTextItem(AddTextItemRequest) returns (AddTextItemResponse);
+    rpc AddBinaryItem(AddBinaryItemRequest) returns (AddBinaryItemResponse);
 }

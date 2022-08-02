@@ -25,6 +25,9 @@ type GokeeperClient interface {
 	SignUpUser(ctx context.Context, in *SignUpUserRequest, opts ...grpc.CallOption) (*SignUpUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 	AddLoginItem(ctx context.Context, in *AddLoginItemRequest, opts ...grpc.CallOption) (*AddLoginItemResponse, error)
+	AddBankCardItem(ctx context.Context, in *AddBankCardItemRequest, opts ...grpc.CallOption) (*AddBankCardItemResponse, error)
+	AddTextItem(ctx context.Context, in *AddTextItemRequest, opts ...grpc.CallOption) (*AddTextItemResponse, error)
+	AddBinaryItem(ctx context.Context, in *AddBinaryItemRequest, opts ...grpc.CallOption) (*AddBinaryItemResponse, error)
 }
 
 type gokeeperClient struct {
@@ -62,6 +65,33 @@ func (c *gokeeperClient) AddLoginItem(ctx context.Context, in *AddLoginItemReque
 	return out, nil
 }
 
+func (c *gokeeperClient) AddBankCardItem(ctx context.Context, in *AddBankCardItemRequest, opts ...grpc.CallOption) (*AddBankCardItemResponse, error) {
+	out := new(AddBankCardItemResponse)
+	err := c.cc.Invoke(ctx, "/proto.server.Gokeeper/AddBankCardItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gokeeperClient) AddTextItem(ctx context.Context, in *AddTextItemRequest, opts ...grpc.CallOption) (*AddTextItemResponse, error) {
+	out := new(AddTextItemResponse)
+	err := c.cc.Invoke(ctx, "/proto.server.Gokeeper/AddTextItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gokeeperClient) AddBinaryItem(ctx context.Context, in *AddBinaryItemRequest, opts ...grpc.CallOption) (*AddBinaryItemResponse, error) {
+	out := new(AddBinaryItemResponse)
+	err := c.cc.Invoke(ctx, "/proto.server.Gokeeper/AddBinaryItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GokeeperServer is the server API for Gokeeper service.
 // All implementations must embed UnimplementedGokeeperServer
 // for forward compatibility
@@ -69,6 +99,9 @@ type GokeeperServer interface {
 	SignUpUser(context.Context, *SignUpUserRequest) (*SignUpUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error)
+	AddBankCardItem(context.Context, *AddBankCardItemRequest) (*AddBankCardItemResponse, error)
+	AddTextItem(context.Context, *AddTextItemRequest) (*AddTextItemResponse, error)
+	AddBinaryItem(context.Context, *AddBinaryItemRequest) (*AddBinaryItemResponse, error)
 	mustEmbedUnimplementedGokeeperServer()
 }
 
@@ -84,6 +117,15 @@ func (UnimplementedGokeeperServer) LoginUser(context.Context, *LoginUserRequest)
 }
 func (UnimplementedGokeeperServer) AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddLoginItem not implemented")
+}
+func (UnimplementedGokeeperServer) AddBankCardItem(context.Context, *AddBankCardItemRequest) (*AddBankCardItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBankCardItem not implemented")
+}
+func (UnimplementedGokeeperServer) AddTextItem(context.Context, *AddTextItemRequest) (*AddTextItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddTextItem not implemented")
+}
+func (UnimplementedGokeeperServer) AddBinaryItem(context.Context, *AddBinaryItemRequest) (*AddBinaryItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddBinaryItem not implemented")
 }
 func (UnimplementedGokeeperServer) mustEmbedUnimplementedGokeeperServer() {}
 
@@ -152,6 +194,60 @@ func _Gokeeper_AddLoginItem_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Gokeeper_AddBankCardItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBankCardItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GokeeperServer).AddBankCardItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.server.Gokeeper/AddBankCardItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GokeeperServer).AddBankCardItem(ctx, req.(*AddBankCardItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gokeeper_AddTextItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddTextItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GokeeperServer).AddTextItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.server.Gokeeper/AddTextItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GokeeperServer).AddTextItem(ctx, req.(*AddTextItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Gokeeper_AddBinaryItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddBinaryItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GokeeperServer).AddBinaryItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.server.Gokeeper/AddBinaryItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GokeeperServer).AddBinaryItem(ctx, req.(*AddBinaryItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Gokeeper_ServiceDesc is the grpc.ServiceDesc for Gokeeper service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -170,6 +266,18 @@ var Gokeeper_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddLoginItem",
 			Handler:    _Gokeeper_AddLoginItem_Handler,
+		},
+		{
+			MethodName: "AddBankCardItem",
+			Handler:    _Gokeeper_AddBankCardItem_Handler,
+		},
+		{
+			MethodName: "AddTextItem",
+			Handler:    _Gokeeper_AddTextItem_Handler,
+		},
+		{
+			MethodName: "AddBinaryItem",
+			Handler:    _Gokeeper_AddBinaryItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
