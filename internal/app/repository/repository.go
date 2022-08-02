@@ -120,8 +120,8 @@ func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models
 	return &user, nil
 }
 
-// CreateLoginItem adds new login item entry to the database.
-func (r *Repository) CreateLoginItem(ctx context.Context, item *models.LoginPasswordItem, userID uuid.UUID) error {
+// CreateItem adds new item entry to the database.
+func (r *Repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
 	id := userID.String()
 	r.logger.Debug().Str("user", id).Msg("getting users collection")
 	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
@@ -130,9 +130,9 @@ func (r *Repository) CreateLoginItem(ctx context.Context, item *models.LoginPass
 	filter := bson.D{{Key: "id", Value: userID}}
 
 	r.logger.Debug().Str("user", id).Msg("preparing update")
-	update := bson.D{{Key: "$push", Value: bson.D{{Key: "logins", Value: item}}}}
+	update := bson.D{{Key: "$push", Value: bson.D{{Key: itemType, Value: item}}}}
 
-	r.logger.Debug().Str("user", id).Msg("updating user's login items")
+	r.logger.Debug().Str("user", id).Msg("updating user's items")
 	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.

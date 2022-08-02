@@ -140,7 +140,7 @@ func (r *RPC) AddLoginItem(ctx context.Context, in *g.AddLoginItemRequest) (*g.A
 	}
 
 	r.logger.Debug().Str("user", in.UserID).Msg("passing new login item to data layer")
-	if err := r.repo.CreateLoginItem(ctx, login, userID); err != nil {
+	if err := r.repo.CreateItem(ctx, login, "logins", userID); err != nil {
 		r.logger.
 			Err(err).
 			Caller().
