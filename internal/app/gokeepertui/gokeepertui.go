@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
 
@@ -134,28 +133,28 @@ func (c *Client) LoginUser(ctx context.Context, login, password string) (string,
 	return resp.UserID, nil
 }
 
-func (c *Client) Sync() {
-	stream, err := c.rpc.Sync(context.Background())
-	if err != nil {
-		panic(err)
-	}
-	go func() {
-		for {
-			in, err := stream.Recv()
-			if err == io.EOF {
-				return
-			}
-			if err != nil {
-				panic(err)
-			}
-			c.user = in.User
-		}
-	}()
-	if err = stream.Send(&g.SyncRequest{UserID: c.userID}); err != nil {
-		panic(err)
-	}
-	stream.CloseSend()
-}
+// func (c *Client) Sync() {
+// 	stream, err := c.rpc.Sync(context.Background())
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	go func() {
+// 		for {
+// 			in, err := stream.Recv()
+// 			if err == io.EOF {
+// 				return
+// 			}
+// 			if err != nil {
+// 				panic(err)
+// 			}
+// 			c.user = in.User
+// 		}
+// 	}()
+// 	if err = stream.Send(&g.SyncRequest{UserID: c.userID}); err != nil {
+// 		panic(err)
+// 	}
+// 	stream.CloseSend()
+// }
 
 func (c *Client) AddLoginItem(ctx context.Context, login, password, userID string, meta map[string]string) error {
 	loginItem := &g.LoginItem{
@@ -205,9 +204,6 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 			return
 		}
 		status.SetText(fmt.Sprintf("Logged in, userID = %s", id))
-		go func() {
-			c.Sync()
-		}()
 		c.userID = id
 		c.rpc.UpdateItems(context.Background(), &g.UpdateItemsRequest{UserID: c.userID})
 		c.DrawMenuWindow()

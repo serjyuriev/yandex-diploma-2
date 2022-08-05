@@ -18,11 +18,10 @@ import (
 type RPC struct {
 	g.UnimplementedGokeeperServer
 
-	cfg     config.ServerConfig
-	repo    repository.Repository
-	svc     service.Service
-	logger  zerolog.Logger
-	clients map[string][]g.Gokeeper_SyncServer
+	cfg    config.ServerConfig
+	repo   repository.Repository
+	svc    service.Service
+	logger zerolog.Logger
 }
 
 // MakeRPC initializes app's grpc service.
@@ -52,11 +51,10 @@ func MakeRPC(logger zerolog.Logger) (*RPC, error) {
 
 	logger.Info().Msg("gRPC layer was successfully initialized")
 	return &RPC{
-		cfg:     cfg,
-		repo:    repo,
-		svc:     svc,
-		logger:  logger,
-		clients: make(map[string][]g.Gokeeper_SyncServer),
+		cfg:    cfg,
+		repo:   repo,
+		svc:    svc,
+		logger: logger,
 	}, nil
 }
 
@@ -115,7 +113,6 @@ func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUs
 	}
 
 	r.logger.Info().Str("user", in.User.Login).Msg("user was successfully logged in")
-	r.clients[userID] = make([]g.Gokeeper_SyncServer, 0)
 	res.UserID = userID
 	res.Error = ""
 	return res, nil
@@ -154,62 +151,52 @@ func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.Upd
 	wg := sync.WaitGroup{}
 	wg.Add(4)
 	go func() {
-		for _, item := range user.Logins {
-			logins = append(logins, &g.LoginItem{
+		for i, item := range user.Logins {
+			logins[i] = &g.LoginItem{
 				Login:    item.Login,
 				Password: item.Password,
 				Meta:     item.Meta,
-			})
+			}
 		}
 		wg.Done()
 	}()
 	go func() {
-		for _, item := range user.BankCards {
-			cards = append(cards, &g.BankCardItem{
+		for i, item := range user.BankCards {
+			cards[i] = &g.BankCardItem{
 				Number:           item.Number,
 				Holder:           item.Holder,
 				Expires:          item.Expires,
 				CardSecurityCode: int32(item.CardSecurityCode),
 				Meta:             item.Meta,
-			})
+			}
 		}
 		wg.Done()
 	}()
 	go func() {
-		for _, item := range user.Texts {
-			texts = append(texts, &g.TextItem{
+		for i, item := range user.Texts {
+			texts[i] = &g.TextItem{
 				Value: item.Value,
 				Meta:  item.Meta,
-			})
+			}
 		}
 		wg.Done()
 	}()
 	go func() {
-		for _, item := range user.Binaries {
-			binaries = append(binaries, &g.BinaryItem{
+		for i, item := range user.Binaries {
+			binaries[i] = &g.BinaryItem{
 				Value: item.Value,
 				Meta:  item.Meta,
-			})
+			}
 		}
 		wg.Done()
 	}()
 	wg.Wait()
-	syncRes := &g.SyncResponse{
-		User: &g.User{
-			Login:    user.Login,
-			Logins:   logins,
-			Cards:    cards,
-			Texts:    texts,
-			Binaries: binaries,
-		},
-		Error: "",
-	}
-
-	for _, stream := range r.clients[in.UserID] {
-		if err := stream.Send(syncRes); err != nil {
-			res.Error = err.Error()
-			return res, err
-		}
+	res.User = &g.User{
+		Login:    user.Login,
+		Logins:   logins,
+		Cards:    cards,
+		Texts:    texts,
+		Binaries: binaries,
 	}
 
 	r.logger.Info().Str("user", in.UserID).Msg("user info was updated")

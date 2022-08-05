@@ -10,7 +10,7 @@ type User struct {
 	Login     string               `bson:"login"`
 	Password  string               `bson:"password"`
 	Logins    []*LoginPasswordItem `bson:"logins"`
-	BankCards []*BankCardItem      `bson:"bank_cards"`
+	BankCards []*BankCardItem      `bson:"cards"`
 	Texts     []*TextItem          `bson:"texts"`
 	Binaries  []*BinaryItem        `bson:"binaries"`
 }

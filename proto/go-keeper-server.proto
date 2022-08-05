@@ -62,14 +62,6 @@ message UpdateItemsRequest {
 }
 
 message UpdateItemsResponse {
-    string error = 1;
-}
-
-message SyncRequest {
-    string userID = 1;
-}
-
-message SyncResponse {
     User user = 1;
     string error = 2;
 }
@@ -114,7 +106,6 @@ service Gokeeper {
     rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
     rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
     rpc UpdateItems(UpdateItemsRequest) returns (UpdateItemsResponse);
-    rpc Sync(stream SyncRequest) returns (stream SyncResponse);
     rpc AddLoginItem(AddLoginItemRequest) returns (AddLoginItemResponse);
     rpc AddBankCardItem(AddBankCardItemRequest) returns (AddBankCardItemResponse);
     rpc AddTextItem(AddTextItemRequest) returns (AddTextItemResponse);

@@ -25,7 +25,6 @@ type GokeeperClient interface {
 	SignUpUser(ctx context.Context, in *SignUpUserRequest, opts ...grpc.CallOption) (*SignUpUserResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginUserResponse, error)
 	UpdateItems(ctx context.Context, in *UpdateItemsRequest, opts ...grpc.CallOption) (*UpdateItemsResponse, error)
-	Sync(ctx context.Context, opts ...grpc.CallOption) (Gokeeper_SyncClient, error)
 	AddLoginItem(ctx context.Context, in *AddLoginItemRequest, opts ...grpc.CallOption) (*AddLoginItemResponse, error)
 	AddBankCardItem(ctx context.Context, in *AddBankCardItemRequest, opts ...grpc.CallOption) (*AddBankCardItemResponse, error)
 	AddTextItem(ctx context.Context, in *AddTextItemRequest, opts ...grpc.CallOption) (*AddTextItemResponse, error)
@@ -65,37 +64,6 @@ func (c *gokeeperClient) UpdateItems(ctx context.Context, in *UpdateItemsRequest
 		return nil, err
 	}
 	return out, nil
-}
-
-func (c *gokeeperClient) Sync(ctx context.Context, opts ...grpc.CallOption) (Gokeeper_SyncClient, error) {
-	stream, err := c.cc.NewStream(ctx, &Gokeeper_ServiceDesc.Streams[0], "/proto.server.Gokeeper/Sync", opts...)
-	if err != nil {
-		return nil, err
-	}
-	x := &gokeeperSyncClient{stream}
-	return x, nil
-}
-
-type Gokeeper_SyncClient interface {
-	Send(*SyncRequest) error
-	Recv() (*SyncResponse, error)
-	grpc.ClientStream
-}
-
-type gokeeperSyncClient struct {
-	grpc.ClientStream
-}
-
-func (x *gokeeperSyncClient) Send(m *SyncRequest) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *gokeeperSyncClient) Recv() (*SyncResponse, error) {
-	m := new(SyncResponse)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func (c *gokeeperClient) AddLoginItem(ctx context.Context, in *AddLoginItemRequest, opts ...grpc.CallOption) (*AddLoginItemResponse, error) {
@@ -141,7 +109,6 @@ type GokeeperServer interface {
 	SignUpUser(context.Context, *SignUpUserRequest) (*SignUpUserResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginUserResponse, error)
 	UpdateItems(context.Context, *UpdateItemsRequest) (*UpdateItemsResponse, error)
-	Sync(Gokeeper_SyncServer) error
 	AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error)
 	AddBankCardItem(context.Context, *AddBankCardItemRequest) (*AddBankCardItemResponse, error)
 	AddTextItem(context.Context, *AddTextItemRequest) (*AddTextItemResponse, error)
@@ -161,9 +128,6 @@ func (UnimplementedGokeeperServer) LoginUser(context.Context, *LoginUserRequest)
 }
 func (UnimplementedGokeeperServer) UpdateItems(context.Context, *UpdateItemsRequest) (*UpdateItemsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateItems not implemented")
-}
-func (UnimplementedGokeeperServer) Sync(Gokeeper_SyncServer) error {
-	return status.Errorf(codes.Unimplemented, "method Sync not implemented")
 }
 func (UnimplementedGokeeperServer) AddLoginItem(context.Context, *AddLoginItemRequest) (*AddLoginItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddLoginItem not implemented")
@@ -242,32 +206,6 @@ func _Gokeeper_UpdateItems_Handler(srv interface{}, ctx context.Context, dec fun
 		return srv.(GokeeperServer).UpdateItems(ctx, req.(*UpdateItemsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
-}
-
-func _Gokeeper_Sync_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(GokeeperServer).Sync(&gokeeperSyncServer{stream})
-}
-
-type Gokeeper_SyncServer interface {
-	Send(*SyncResponse) error
-	Recv() (*SyncRequest, error)
-	grpc.ServerStream
-}
-
-type gokeeperSyncServer struct {
-	grpc.ServerStream
-}
-
-func (x *gokeeperSyncServer) Send(m *SyncResponse) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *gokeeperSyncServer) Recv() (*SyncRequest, error) {
-	m := new(SyncRequest)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 func _Gokeeper_AddLoginItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -378,13 +316,6 @@ var Gokeeper_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Gokeeper_AddBinaryItem_Handler,
 		},
 	},
-	Streams: []grpc.StreamDesc{
-		{
-			StreamName:    "Sync",
-			Handler:       _Gokeeper_Sync_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
-		},
-	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "proto/go-keeper-server.proto",
 }
