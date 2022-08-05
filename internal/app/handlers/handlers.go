@@ -20,7 +20,7 @@ type RPC struct {
 	g.UnimplementedGokeeperServer
 
 	cfg     config.ServerConfig
-	repo    *repository.Repository
+	repo    repository.Repository
 	svc     *service.Service
 	logger  zerolog.Logger
 	clients map[string][]g.Gokeeper_SyncServer

@@ -17,15 +17,23 @@ var (
 	ErrNoUser = errors.New("there is no such user in the database")
 )
 
+// Repository provides data layer methods.
+type Repository interface {
+	CreateUser(ctx context.Context, user *models.User) error
+	ReadUserByLogin(ctx context.Context, login string) (*models.User, error)
+	ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.User, error)
+	CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error
+}
+
 // Repository holds objects for data layer implementation.
-type Repository struct {
+type repository struct {
 	cfg    config.ServerConfig
 	client *mongo.Client
 	logger zerolog.Logger
 }
 
 // NewRepository initializes connection to mongo db.
-func NewRepository(logger zerolog.Logger) (*Repository, error) {
+func NewRepository(logger zerolog.Logger) (Repository, error) {
 	logger.Debug().Str("module", "repo").Msg("getting app's configuration")
 	cfg := config.GetServerConfig()
 
@@ -40,7 +48,7 @@ func NewRepository(logger zerolog.Logger) (*Repository, error) {
 	}
 
 	logger.Info().Msg("data layer was successfully initialized")
-	return &Repository{
+	return &repository{
 		cfg:    cfg,
 		client: client,
 		logger: logger,
@@ -48,7 +56,7 @@ func NewRepository(logger zerolog.Logger) (*Repository, error) {
 }
 
 // CreateUser adds new user entry to the database.
-func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
+func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
 	r.logger.Debug().Str("user", user.Login).Msg("getting users collection")
 	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
 
@@ -83,7 +91,7 @@ func (r *Repository) CreateUser(ctx context.Context, user *models.User) error {
 
 // ReadUserByLogin searches the database for a user
 // with provided login, returning found user or ErrNoUser.
-func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models.User, error) {
+func (r *repository) ReadUserByLogin(ctx context.Context, login string) (*models.User, error) {
 	r.logger.Debug().Str("user", login).Msg("getting users collection")
 	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
 
@@ -122,7 +130,7 @@ func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models
 
 // ReadUserByID searches the database for a user
 // with provided UUID, returning found user or ErrNoUser.
-func (r *Repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.User, error) {
+func (r *repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.User, error) {
 	r.logger.Debug().Str("user", uuid.String()).Msg("getting users collection")
 	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
 
@@ -160,7 +168,7 @@ func (r *Repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.
 }
 
 // CreateItem adds new item entry to the database.
-func (r *Repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
+func (r *repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
 	id := userID.String()
 	r.logger.Debug().Str("user", id).Msg("getting users collection")
 	collection := r.client.Database(r.cfg.Database.Name).Collection("users")

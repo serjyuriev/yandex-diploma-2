@@ -22,12 +22,12 @@ var (
 // Service holds objects for service layer implementation.
 type Service struct {
 	cfg    config.ServerConfig
-	repo   *repository.Repository
+	repo   repository.Repository
 	logger zerolog.Logger
 }
 
 // NewService initializes app's service layer.
-func NewService(logger zerolog.Logger, repo *repository.Repository) (*Service, error) {
+func NewService(logger zerolog.Logger, repo repository.Repository) (*Service, error) {
 	logger.Debug().Str("module", "service").Msg("getting app's configuration")
 	cfg := config.GetServerConfig()
 
