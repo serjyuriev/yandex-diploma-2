@@ -9,6 +9,10 @@ option go_package = "proto/server";
 message User {
     string login = 1;
     string password = 2;
+    repeated LoginItem logins = 3;
+    repeated BankCardItem cards = 4;
+    repeated TextItem texts = 5;
+    repeated BinaryItem binaries = 6;
 }
 
 message LoginItem {
@@ -53,6 +57,23 @@ message LoginUserResponse {
     string error = 2;
 }
 
+message UpdateItemsRequest {
+    string userID = 1;
+}
+
+message UpdateItemsResponse {
+    string error = 1;
+}
+
+message SyncRequest {
+    string userID = 1;
+}
+
+message SyncResponse {
+    User user = 1;
+    string error = 2;
+}
+
 message AddLoginItemRequest {
     LoginItem item = 1;
     string userID = 2;
@@ -92,6 +113,8 @@ message AddBinaryItemResponse {
 service Gokeeper {
     rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
     rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+    rpc UpdateItems(UpdateItemsRequest) returns (UpdateItemsResponse);
+    rpc Sync(stream SyncRequest) returns (stream SyncResponse);
     rpc AddLoginItem(AddLoginItemRequest) returns (AddLoginItemResponse);
     rpc AddBankCardItem(AddBankCardItemRequest) returns (AddBankCardItemResponse);
     rpc AddTextItem(AddTextItemRequest) returns (AddTextItemResponse);

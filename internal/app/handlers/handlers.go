@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"io"
+	"sync"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog"
@@ -17,10 +19,11 @@ import (
 type RPC struct {
 	g.UnimplementedGokeeperServer
 
-	cfg    config.ServerConfig
-	repo   *repository.Repository
-	svc    *service.Service
-	logger zerolog.Logger
+	cfg     config.ServerConfig
+	repo    *repository.Repository
+	svc     *service.Service
+	logger  zerolog.Logger
+	clients map[string][]g.Gokeeper_SyncServer
 }
 
 // MakeRPC initializes app's grpc service.
@@ -50,10 +53,11 @@ func MakeRPC(logger zerolog.Logger) (*RPC, error) {
 
 	logger.Info().Msg("gRPC layer was successfully initialized")
 	return &RPC{
-		cfg:    cfg,
-		repo:   repo,
-		svc:    svc,
-		logger: logger,
+		cfg:     cfg,
+		repo:    repo,
+		svc:     svc,
+		logger:  logger,
+		clients: make(map[string][]g.Gokeeper_SyncServer),
 	}, nil
 }
 
@@ -112,9 +116,123 @@ func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUs
 	}
 
 	r.logger.Info().Str("user", in.User.Login).Msg("user was successfully logged in")
+	r.clients[userID] = make([]g.Gokeeper_SyncServer, 0)
 	res.UserID = userID
 	res.Error = ""
 	return res, nil
+}
+
+func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.UpdateItemsResponse, error) {
+	r.logger.Info().Str("user", in.UserID).Msg("received update request")
+	res := new(g.UpdateItemsResponse)
+	uid, err := uuid.Parse(in.UserID)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", in.UserID).
+			Msg("unable to parse user uuid")
+		res.Error = err.Error()
+		return res, err
+	}
+
+	r.logger.Debug().Str("user", in.UserID).Msg("updating items")
+	user, err := r.repo.ReadUserByID(ctx, uid)
+	if err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", in.UserID).
+			Msg("unable to update items")
+		res.Error = err.Error()
+		return res, err
+	}
+
+	logins := make([]*g.LoginItem, len(user.Logins))
+	cards := make([]*g.BankCardItem, len(user.BankCards))
+	texts := make([]*g.TextItem, len(user.Texts))
+	binaries := make([]*g.BinaryItem, len(user.Binaries))
+	wg := sync.WaitGroup{}
+	wg.Add(4)
+	go func() {
+		for _, item := range user.Logins {
+			logins = append(logins, &g.LoginItem{
+				Login:    item.Login,
+				Password: item.Password,
+				Meta:     item.Meta,
+			})
+		}
+		wg.Done()
+	}()
+	go func() {
+		for _, item := range user.BankCards {
+			cards = append(cards, &g.BankCardItem{
+				Number:           item.Number,
+				Holder:           item.Holder,
+				Expires:          item.Expires,
+				CardSecurityCode: int32(item.CardSecurityCode),
+				Meta:             item.Meta,
+			})
+		}
+		wg.Done()
+	}()
+	go func() {
+		for _, item := range user.Texts {
+			texts = append(texts, &g.TextItem{
+				Value: item.Value,
+				Meta:  item.Meta,
+			})
+		}
+		wg.Done()
+	}()
+	go func() {
+		for _, item := range user.Binaries {
+			binaries = append(binaries, &g.BinaryItem{
+				Value: item.Value,
+				Meta:  item.Meta,
+			})
+		}
+		wg.Done()
+	}()
+	wg.Wait()
+	syncRes := &g.SyncResponse{
+		User: &g.User{
+			Login:    user.Login,
+			Logins:   logins,
+			Cards:    cards,
+			Texts:    texts,
+			Binaries: binaries,
+		},
+		Error: "",
+	}
+
+	for _, stream := range r.clients[in.UserID] {
+		if err := stream.Send(syncRes); err != nil {
+			res.Error = err.Error()
+			return res, err
+		}
+	}
+
+	r.logger.Info().Str("user", in.UserID).Msg("user info was updated")
+	res.Error = ""
+	return res, nil
+}
+
+func (r *RPC) Sync(stream g.Gokeeper_SyncServer) error {
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+
+		if _, ok := r.clients[in.UserID]; !ok {
+			r.logger.Debug().Str("user", in.UserID).Msg("adding stream")
+			r.clients[in.UserID] = append(r.clients[in.UserID], stream)
+		}
+	}
 }
 
 // AddLoginItem adds new login entry in the user's vault.

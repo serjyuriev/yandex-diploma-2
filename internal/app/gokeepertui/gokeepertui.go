@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"os"
 
 	"github.com/marcusolsson/tui-go"
@@ -21,14 +23,14 @@ var logo = `
   |_  |___|   |_,_|___|___|  _|___|_|  
   |___|                   |_|          `
 
-var userID string
-
 // Client holds app's client-side related objects.
 type Client struct {
 	cfg    config.ClientConfig
 	rpc    g.GokeeperClient
 	ui     tui.UI
 	logger zerolog.Logger
+	userID string
+	user   *g.User
 }
 
 // NewClient initializes app's client.
@@ -132,6 +134,29 @@ func (c *Client) LoginUser(ctx context.Context, login, password string) (string,
 	return resp.UserID, nil
 }
 
+func (c *Client) Sync() {
+	stream, err := c.rpc.Sync(context.Background())
+	if err != nil {
+		panic(err)
+	}
+	go func() {
+		for {
+			in, err := stream.Recv()
+			if err == io.EOF {
+				return
+			}
+			if err != nil {
+				panic(err)
+			}
+			c.user = in.User
+		}
+	}()
+	if err = stream.Send(&g.SyncRequest{UserID: c.userID}); err != nil {
+		panic(err)
+	}
+	stream.CloseSend()
+}
+
 func (c *Client) AddLoginItem(ctx context.Context, login, password, userID string, meta map[string]string) error {
 	loginItem := &g.LoginItem{
 		Login:    login,
@@ -180,7 +205,12 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 			return
 		}
 		status.SetText(fmt.Sprintf("Logged in, userID = %s", id))
-		userID = id
+		go func() {
+			c.Sync()
+		}()
+		c.userID = id
+		c.rpc.UpdateItems(context.Background(), &g.UpdateItemsRequest{UserID: c.userID})
+		c.DrawMenuWindow()
 	})
 
 	register := tui.NewButton("[Sign Up]")
@@ -195,7 +225,7 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 
 	addLogin := tui.NewButton("[Add Login]")
 	addLogin.OnActivated(func(*tui.Button) {
-		if err := c.AddLoginItem(context.TODO(), user.Text(), password.Text(), userID, map[string]string{
+		if err := c.AddLoginItem(context.TODO(), user.Text(), password.Text(), c.userID, map[string]string{
 			"testing": "onetwothree",
 		}); err != nil {
 			status.SetText(fmt.Sprintf("Unable to add new item: %s", err.Error()))
@@ -208,7 +238,6 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 		tui.NewSpacer(),
 		tui.NewPadder(1, 0, login),
 		tui.NewPadder(1, 0, register),
-		tui.NewPadder(1, 0, addLogin),
 	)
 
 	window := tui.NewVBox(
@@ -231,7 +260,7 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 		status,
 	)
 
-	tui.DefaultFocusChain.Set(user, password, login, register, addLogin)
+	tui.DefaultFocusChain.Set(user, password, login, register)
 
 	ui, err := tui.New(root)
 	if err != nil {
@@ -245,4 +274,120 @@ func (c *Client) DrawAuthWindow() (tui.UI, error) {
 	ui.SetKeybinding("Esc", func() { ui.Quit() })
 
 	return ui, nil
+}
+
+func (c *Client) DrawMenuWindow() error {
+	c.ui.Quit()
+	menu := tui.NewTable(0, 0)
+	menu.SetColumnStretch(0, 1)
+
+	logins := tui.NewButton("[Logins]")
+	logins.OnActivated(func(b *tui.Button) {
+		c.DrawLoginItemsWindow()
+	})
+	cards := tui.NewButton("[Cards]")
+	cards.OnActivated(func(b *tui.Button) {
+	})
+	texts := tui.NewButton("[Texts]")
+	texts.OnActivated(func(b *tui.Button) {
+	})
+	binaries := tui.NewButton("[Binaries]")
+	binaries.OnActivated(func(b *tui.Button) {
+	})
+
+	menu.AppendRow(logins)
+	menu.AppendRow(cards)
+	menu.AppendRow(texts)
+	menu.AppendRow(binaries)
+	menu.SetFocused(true)
+
+	window := tui.NewVBox(
+		tui.NewPadder(10, 1, tui.NewLabel(logo)),
+		tui.NewPadder(12, 0, tui.NewLabel("Welcome to go-keeper! Select item type.")),
+		tui.NewPadder(1, 1, menu),
+	)
+	window.SetBorder(true)
+
+	wrapper := tui.NewVBox(
+		tui.NewSpacer(),
+		window,
+		tui.NewSpacer(),
+	)
+	content := tui.NewHBox(tui.NewSpacer(), wrapper, tui.NewSpacer())
+
+	root := tui.NewVBox(content)
+
+	ui, err := tui.New(root)
+	if err != nil {
+		c.logger.
+			Err(err).
+			Caller().
+			Msg("unable to create menu window")
+		return err
+	}
+
+	ui.SetKeybinding("Esc", func() { ui.Quit() })
+	c.ui = ui
+	c.Start()
+
+	return nil
+}
+
+func (c *Client) DrawLoginItemsWindow() error {
+	c.ui.Quit()
+
+	inbox := tui.NewTable(0, 0)
+	inbox.SetColumnStretch(0, 0)
+	inbox.SetFocused(true)
+
+	for _, l := range c.user.Logins {
+		inbox.AppendRow(
+			tui.NewLabel(l.Login),
+		)
+	}
+
+	var (
+		login    = tui.NewLabel("")
+		password = tui.NewLabel("")
+		meta     = tui.NewLabel("")
+	)
+
+	info := tui.NewGrid(0, 0)
+	info.AppendRow(tui.NewLabel("Login:"), login)
+	info.AppendRow(tui.NewLabel("Password:"), password)
+	info.AppendRow(tui.NewLabel("Meta:"), meta)
+
+	body := tui.NewLabel("")
+	body.SetSizePolicy(tui.Preferred, tui.Expanding)
+
+	mail := tui.NewVBox(info, body)
+	mail.SetSizePolicy(tui.Preferred, tui.Expanding)
+
+	inbox.OnSelectionChanged(func(t *tui.Table) {
+		l := c.user.Logins[t.Selected()]
+		login.SetText(l.Login)
+		password.SetText(l.Password)
+		var metaString string
+		for k, v := range l.Meta {
+			metaString += fmt.Sprintf("%s: %s\n", k, v)
+		}
+		meta.SetText(metaString)
+	})
+
+	// Select first mail on startup.
+	inbox.Select(0)
+
+	root := tui.NewVBox(inbox, tui.NewLabel(""), mail)
+
+	ui, err := tui.New(root)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ui.SetKeybinding("Esc", func() { ui.Quit() })
+
+	c.ui = ui
+	c.Start()
+
+	return nil
 }

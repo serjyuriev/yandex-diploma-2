@@ -120,6 +120,45 @@ func (r *Repository) ReadUserByLogin(ctx context.Context, login string) (*models
 	return &user, nil
 }
 
+// ReadUserByID searches the database for a user
+// with provided UUID, returning found user or ErrNoUser.
+func (r *Repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.User, error) {
+	r.logger.Debug().Str("user", uuid.String()).Msg("getting users collection")
+	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
+
+	r.logger.Debug().Str("user", uuid.String()).Msg("preparing filter")
+	filter := bson.D{{Key: "id", Value: uuid}}
+
+	r.logger.Debug().Str("user", uuid.String()).Msg("searching for user in the database")
+	result := collection.FindOne(ctx, filter)
+	if result.Err() != nil {
+		if result.Err() == mongo.ErrNoDocuments {
+			r.logger.Debug().Str("user", uuid.String()).Msg("no such user in the database")
+			return nil, ErrNoUser
+		}
+		r.logger.
+			Err(result.Err()).
+			Caller().
+			Str("user", uuid.String()).
+			Msg("unable to perform read operation in the database")
+		return nil, result.Err()
+	}
+
+	r.logger.Debug().Str("user", uuid.String()).Msg("processing query result")
+	var user models.User
+	if err := result.Decode(&user); err != nil {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", uuid.String()).
+			Msg("unable to decode query result")
+		return nil, err
+	}
+
+	r.logger.Debug().Str("user", uuid.String()).Msg("user was found in the database")
+	return &user, nil
+}
+
 // CreateItem adds new item entry to the database.
 func (r *Repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
 	id := userID.String()
