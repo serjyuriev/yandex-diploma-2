@@ -19,20 +19,26 @@ var (
 	ErrUserNotExists      = errors.New("user doesn't exist")
 )
 
+// Service provides service layer methods.
+type Service interface {
+	SignUpUser(ctx context.Context, user *models.User) (string, error)
+	LoginUser(ctx context.Context, user *models.User) (string, error)
+}
+
 // Service holds objects for service layer implementation.
-type Service struct {
+type service struct {
 	cfg    config.ServerConfig
 	repo   repository.Repository
 	logger zerolog.Logger
 }
 
 // NewService initializes app's service layer.
-func NewService(logger zerolog.Logger, repo repository.Repository) (*Service, error) {
+func NewService(logger zerolog.Logger, repo repository.Repository) (Service, error) {
 	logger.Debug().Str("module", "service").Msg("getting app's configuration")
 	cfg := config.GetServerConfig()
 
 	logger.Info().Msg("service layer was successfully initialized")
-	return &Service{
+	return &service{
 		cfg:    cfg,
 		repo:   repo,
 		logger: logger,
@@ -41,7 +47,7 @@ func NewService(logger zerolog.Logger, repo repository.Repository) (*Service, er
 
 // SignUpUser hashes user password and adds user to the database,
 // returning user's uuid.
-func (s *Service) SignUpUser(ctx context.Context, user *models.User) (string, error) {
+func (s *service) SignUpUser(ctx context.Context, user *models.User) (string, error) {
 	s.logger.Debug().Str("user", user.Login).Msg("checking if such user already exists")
 	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
 	if err != nil {
@@ -80,7 +86,7 @@ func (s *Service) SignUpUser(ctx context.Context, user *models.User) (string, er
 
 // LoginUser checks whether user exists in the database and
 // if user's credentials are equals, logins user.
-func (s *Service) LoginUser(ctx context.Context, user *models.User) (string, error) {
+func (s *service) LoginUser(ctx context.Context, user *models.User) (string, error) {
 	s.logger.Debug().Str("user", user.Login).Msg("checking if such user exists")
 	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
 	if err != nil {
@@ -112,7 +118,7 @@ func (s *Service) LoginUser(ctx context.Context, user *models.User) (string, err
 }
 
 // hashUserPassword returns hashed with sha256 algorythm password.
-func (s *Service) hashUserPassword(password string) string {
+func (s *service) hashUserPassword(password string) string {
 	pwd := sha256.New()
 	pwd.Write([]byte(password))
 	pwd.Write([]byte(s.cfg.Salt))
