@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"context"
-	"io"
 	"sync"
 
 	"github.com/google/uuid"
@@ -216,23 +215,6 @@ func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.Upd
 	r.logger.Info().Str("user", in.UserID).Msg("user info was updated")
 	res.Error = ""
 	return res, nil
-}
-
-func (r *RPC) Sync(stream g.Gokeeper_SyncServer) error {
-	for {
-		in, err := stream.Recv()
-		if err == io.EOF {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-
-		if _, ok := r.clients[in.UserID]; !ok {
-			r.logger.Debug().Str("user", in.UserID).Msg("adding stream")
-			r.clients[in.UserID] = append(r.clients[in.UserID], stream)
-		}
-	}
 }
 
 // AddLoginItem adds new login entry in the user's vault.
