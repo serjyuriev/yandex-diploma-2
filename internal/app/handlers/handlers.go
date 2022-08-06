@@ -118,6 +118,8 @@ func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUs
 	return res, nil
 }
 
+// UpdateItems returns fully updated user info,
+// including all available items.
 func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.UpdateItemsResponse, error) {
 	r.logger.Info().Str("user", in.UserID).Msg("received update request")
 	res := new(g.UpdateItemsResponse)
