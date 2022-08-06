@@ -97,6 +97,7 @@ func NewClient() (*Client, error) {
 	}, nil
 }
 
+// Run executes the main method of the client app.
 func (c *Client) Run() error {
 	if c.user.Login == "" || c.user.Password == "" {
 		return fmt.Errorf("login and/or password cannot be empty")
@@ -185,6 +186,8 @@ func (c *Client) Run() error {
 	return nil
 }
 
+// signUpUser sends an rpc request to server
+// to sign new user up.
 func (c *Client) signUpUser(ctx context.Context, login, password string) (string, error) {
 	user := &g.User{
 		Login:    login,
@@ -208,6 +211,8 @@ func (c *Client) signUpUser(ctx context.Context, login, password string) (string
 	return resp.UserID, nil
 }
 
+// loginUser sends an rpc request to server
+// to log existing user in.
 func (c *Client) loginUser(ctx context.Context, login, password string) (string, error) {
 	user := &g.User{
 		Login:    login,
@@ -231,6 +236,8 @@ func (c *Client) loginUser(ctx context.Context, login, password string) (string,
 	return resp.UserID, nil
 }
 
+// updateItems sends an rpc request to server
+// to get all user's items.
 func (c *Client) updateItems(ctx context.Context, userID string) error {
 	resp, err := c.rpc.UpdateItems(ctx, &g.UpdateItemsRequest{UserID: userID})
 	if err != nil {
@@ -251,6 +258,8 @@ func (c *Client) updateItems(ctx context.Context, userID string) error {
 	return nil
 }
 
+// addLoginItem sends an rpc request to server
+// to add new login item.
 func (c *Client) addLoginItem(ctx context.Context, item *g.LoginItem, userID string) error {
 	req := &g.AddLoginItemRequest{
 		Item:   item,
@@ -271,6 +280,8 @@ func (c *Client) addLoginItem(ctx context.Context, item *g.LoginItem, userID str
 	return nil
 }
 
+// addCardItem sends an rpc request to server
+// to add new card item.
 func (c *Client) addCardItem(ctx context.Context, item *g.BankCardItem, userID string) error {
 	req := &g.AddBankCardItemRequest{
 		Item:   item,
@@ -291,6 +302,8 @@ func (c *Client) addCardItem(ctx context.Context, item *g.BankCardItem, userID s
 	return nil
 }
 
+// addTextItem sends an rpc request to server
+// to add new text item.
 func (c *Client) addTextItem(ctx context.Context, item *g.TextItem, userID string) error {
 	req := &g.AddTextItemRequest{
 		Item:   item,
@@ -311,6 +324,8 @@ func (c *Client) addTextItem(ctx context.Context, item *g.TextItem, userID strin
 	return nil
 }
 
+// addBinaryItem sends an rpc request to server
+// to add new binary item.
 func (c *Client) addBinaryItem(ctx context.Context, item *g.BinaryItem, userID string) error {
 	req := &g.AddBinaryItemRequest{
 		Item:   item,
@@ -331,6 +346,8 @@ func (c *Client) addBinaryItem(ctx context.Context, item *g.BinaryItem, userID s
 	return nil
 }
 
+// getLoginItemFromUser requests user to enter login item
+// information through stdin.
 func (c *Client) getLoginItemFromUser() (*g.LoginItem, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	item := &g.LoginItem{}
@@ -380,6 +397,8 @@ func (c *Client) getLoginItemFromUser() (*g.LoginItem, error) {
 	return item, nil
 }
 
+// getCardItemFromUser requests user to enter card item
+// information through stdin.
 func (c *Client) getCardItemFromUser() (*g.BankCardItem, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	item := &g.BankCardItem{}
@@ -450,6 +469,8 @@ func (c *Client) getCardItemFromUser() (*g.BankCardItem, error) {
 	return item, nil
 }
 
+// getTextItemFromUser requests user to enter text item
+// information through stdin.
 func (c *Client) getTextItemFromUser() (*g.TextItem, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	item := &g.TextItem{}
@@ -491,6 +512,8 @@ func (c *Client) getTextItemFromUser() (*g.TextItem, error) {
 	return item, nil
 }
 
+// getBinaryItemFromUser requests user to enter binary item
+// information through stdin.
 func (c *Client) getBinaryItemFromUser() (*g.BinaryItem, error) {
 	sc := bufio.NewScanner(os.Stdin)
 	item := &g.BinaryItem{}
@@ -532,6 +555,7 @@ func (c *Client) getBinaryItemFromUser() (*g.BinaryItem, error) {
 	return item, nil
 }
 
+// displayLoginItems prints all login items to stdout.
 func (c *Client) displayLoginItems() {
 	fmt.Println("\n---------------- LOGINS ----------------")
 	if len(c.user.Logins) == 0 {
@@ -550,6 +574,7 @@ func (c *Client) displayLoginItems() {
 	fmt.Println()
 }
 
+// displayCardItems prints all card items to stdout.
 func (c *Client) displayCardItems() {
 	fmt.Println("\n---------------- CARDS ----------------")
 	if len(c.user.Cards) == 0 {
@@ -570,6 +595,7 @@ func (c *Client) displayCardItems() {
 	fmt.Println()
 }
 
+// displayTextItems prints all text items to stdout.
 func (c *Client) displayTextItems() {
 	fmt.Println("\n---------------- TEXTS ----------------")
 	if len(c.user.Texts) == 0 {
@@ -587,6 +613,7 @@ func (c *Client) displayTextItems() {
 	fmt.Println()
 }
 
+// displayBinaryItems prints all binary items to stdout.
 func (c *Client) displayBinaryItems() {
 	fmt.Println("\n---------------- BINARIES ----------------")
 	if len(c.user.Binaries) == 0 {
