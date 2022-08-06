@@ -7,6 +7,8 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=gokpr
       - MONGO_INITDB_ROOT_PASSWORD=g0k33p3r
       - MONGO_INITDB_DATABASE=gokeeper
+    ports:
+      - 27017:27017
     volumes:
       - './mongo:/data/db'
   gokeeper:
