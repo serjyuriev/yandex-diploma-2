@@ -18,11 +18,13 @@ import (
 
 // Client holds app's client-side related objects.
 type Client struct {
-	cfg    config.ClientConfig
-	rpc    g.GokeeperClient
-	logger zerolog.Logger
-	mode   *mode
-	user   *g.User
+	cfg          config.ClientConfig
+	rpc          g.GokeeperClient
+	logger       zerolog.Logger
+	mode         *mode
+	user         *g.User
+	buildVersion string
+	buildDate    string
 }
 
 // mode stores all flag values.
@@ -36,10 +38,11 @@ type mode struct {
 	AddCardItem    bool
 	AddTextItem    bool
 	AddBinaryItem  bool
+	BuildInfo      bool
 }
 
 // NewClient initializes app's client.
-func NewClient() (*Client, error) {
+func NewClient(buildVersion string, buildDate string) (*Client, error) {
 	mode := &mode{}
 	user := &g.User{}
 	flag.BoolVar(&mode.SignUp, "signup", false, "sign up as new user")
@@ -53,6 +56,7 @@ func NewClient() (*Client, error) {
 	flag.BoolVar(&mode.AddCardItem, "abc", false, "add bank card item")
 	flag.BoolVar(&mode.AddTextItem, "atext", false, "add text item")
 	flag.BoolVar(&mode.AddBinaryItem, "abins", false, "add binary item")
+	flag.BoolVar(&mode.BuildInfo, "build", false, "display build information")
 
 	cfg := config.GetClientConfig()
 
@@ -89,16 +93,22 @@ func NewClient() (*Client, error) {
 
 	logger.Info().Msg("go-keeper client was successfully initialized")
 	return &Client{
-		cfg:    cfg,
-		rpc:    rpcClient,
-		logger: logger,
-		mode:   mode,
-		user:   user,
+		cfg:          cfg,
+		rpc:          rpcClient,
+		logger:       logger,
+		mode:         mode,
+		user:         user,
+		buildVersion: buildVersion,
+		buildDate:    buildDate,
 	}, nil
 }
 
 // Run executes the main method of the client app.
 func (c *Client) Run() error {
+	if c.mode.BuildInfo {
+		fmt.Printf("Build version: %s\n", c.buildVersion)
+		fmt.Printf("Build date: %s\n", c.buildDate)
+	}
 	if c.user.Login == "" || c.user.Password == "" {
 		return fmt.Errorf("login and/or password cannot be empty")
 	}
