@@ -29,6 +29,7 @@ type Repository interface {
 type repository struct {
 	cfg    config.ServerConfig
 	client *mongo.Client
+	users  *mongo.Collection
 	logger zerolog.Logger
 }
 
@@ -46,20 +47,19 @@ func NewRepository(logger zerolog.Logger) (Repository, error) {
 			Msg("unable to initialize data layer")
 		return nil, err
 	}
+	collection := client.Database(cfg.Database.Name).Collection("users")
 
 	logger.Info().Msg("data layer was successfully initialized")
 	return &repository{
 		cfg:    cfg,
 		client: client,
+		users:  collection,
 		logger: logger,
 	}, nil
 }
 
 // CreateUser adds new user entry to the database.
 func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
-	r.logger.Debug().Str("user", user.Login).Msg("getting users collection")
-	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
-
 	r.logger.Debug().Str("user", user.Login).Msg("marshalling user's info to bson")
 	doc, err := bson.Marshal(user)
 	if err != nil {
@@ -72,7 +72,7 @@ func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
 	}
 
 	r.logger.Debug().Str("user", user.Login).Msg("inserting new user to the database")
-	result, err := collection.InsertOne(ctx, doc)
+	result, err := r.users.InsertOne(ctx, doc)
 	if err != nil {
 		r.logger.
 			Err(err).
@@ -92,14 +92,11 @@ func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
 // ReadUserByLogin searches the database for a user
 // with provided login, returning found user or ErrNoUser.
 func (r *repository) ReadUserByLogin(ctx context.Context, login string) (*models.User, error) {
-	r.logger.Debug().Str("user", login).Msg("getting users collection")
-	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
-
 	r.logger.Debug().Str("user", login).Msg("preparing filter")
 	filter := bson.D{{Key: "login", Value: login}}
 
 	r.logger.Debug().Str("user", login).Msg("searching for user in the database")
-	result := collection.FindOne(ctx, filter)
+	result := r.users.FindOne(ctx, filter)
 	if result.Err() != nil {
 		if result.Err() == mongo.ErrNoDocuments {
 			r.logger.Debug().Str("user", login).Msg("no such user in the database")
@@ -131,14 +128,11 @@ func (r *repository) ReadUserByLogin(ctx context.Context, login string) (*models
 // ReadUserByID searches the database for a user
 // with provided UUID, returning found user or ErrNoUser.
 func (r *repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.User, error) {
-	r.logger.Debug().Str("user", uuid.String()).Msg("getting users collection")
-	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
-
 	r.logger.Debug().Str("user", uuid.String()).Msg("preparing filter")
 	filter := bson.D{{Key: "id", Value: uuid}}
 
 	r.logger.Debug().Str("user", uuid.String()).Msg("searching for user in the database")
-	result := collection.FindOne(ctx, filter)
+	result := r.users.FindOne(ctx, filter)
 	if result.Err() != nil {
 		if result.Err() == mongo.ErrNoDocuments {
 			r.logger.Debug().Str("user", uuid.String()).Msg("no such user in the database")
@@ -170,8 +164,6 @@ func (r *repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.
 // CreateItem adds new item entry to the database.
 func (r *repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
 	id := userID.String()
-	r.logger.Debug().Str("user", id).Msg("getting users collection")
-	collection := r.client.Database(r.cfg.Database.Name).Collection("users")
 
 	r.logger.Debug().Str("user", id).Msg("preparing filter")
 	filter := bson.D{{Key: "id", Value: userID}}
@@ -180,7 +172,7 @@ func (r *repository) CreateItem(ctx context.Context, item interface{}, itemType 
 	update := bson.D{{Key: "$push", Value: bson.D{{Key: itemType, Value: item}}}}
 
 	r.logger.Debug().Str("user", id).Msg("updating user's items")
-	result, err := collection.UpdateOne(ctx, filter, update)
+	result, err := r.users.UpdateOne(ctx, filter, update)
 	if err != nil {
 		r.logger.
 			Err(err).
