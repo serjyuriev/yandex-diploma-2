@@ -1,3 +1,4 @@
+// Package gokeeperclt is a CLI client application of gokeeper system.
 package gokeeperclt
 
 import (

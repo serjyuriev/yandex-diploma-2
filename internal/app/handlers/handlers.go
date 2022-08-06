@@ -1,3 +1,4 @@
+// Package handlers provides gRPC methods for gokeeper server app.
 package handlers
 
 import (

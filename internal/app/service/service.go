@@ -1,3 +1,4 @@
+// Package service provides service layer implementation of gokeeper server app.
 package service
 
 import (
@@ -14,9 +15,12 @@ import (
 )
 
 var (
+	// ErrInvalidCredentails is raised when provided user's credentials are not correct.
 	ErrInvalidCredentials = errors.New("login and/or password incorrect")
-	ErrUserExists         = errors.New("user already exists")
-	ErrUserNotExists      = errors.New("user doesn't exist")
+	// ErrUserExists is raised when client tries to create already existing in the database user.
+	ErrUserExists = errors.New("user already exists")
+	// ErrUserNotExists is raised when client tries to login with non-existing user.
+	ErrUserNotExists = errors.New("user doesn't exist")
 )
 
 // Service provides service layer methods.

@@ -1,3 +1,4 @@
+// Package models provides items and user models for gokeeper app.
 package models
 
 import (

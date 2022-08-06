@@ -1,3 +1,5 @@
+// Package config provides a server and client configuration
+// structures and methods for it initialization.
 package config
 
 import (

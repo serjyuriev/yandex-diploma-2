@@ -1,3 +1,4 @@
+// Package repository provides data layer implementation for gokeeper server app.
 package repository
 
 import (
@@ -14,6 +15,8 @@ import (
 )
 
 var (
+	// ErrNoUser is raised when client tries to get information about user
+	// which does not exist in the database.
 	ErrNoUser = errors.New("there is no such user in the database")
 )
 

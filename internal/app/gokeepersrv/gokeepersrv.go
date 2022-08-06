@@ -1,3 +1,4 @@
+// Package gokeepersrv is a server-side application of gokeeper system.
 package gokeepersrv
 
 import (
