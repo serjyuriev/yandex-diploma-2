@@ -21,6 +21,9 @@ var (
 	ErrUserExists = errors.New("user already exists")
 	// ErrUserNotExists is raised when client tries to login with non-existing user.
 	ErrUserNotExists = errors.New("user doesn't exist")
+	// ErrNilArgument is raised when client makes a call for a method without
+	// providing enough information.
+	ErrNilArgument = errors.New("argument can't be empty")
 )
 
 // Service provides service layer methods.
@@ -38,6 +41,11 @@ type service struct {
 
 // NewService initializes app's service layer.
 func NewService(logger zerolog.Logger, repo repository.Repository) (Service, error) {
+	if repo == nil {
+		logger.Err(ErrNilArgument).Str("arg", "repo").Msg("repository can't be nil")
+		return nil, ErrNilArgument
+	}
+
 	logger.Debug().Str("module", "service").Msg("getting app's configuration")
 	cfg := config.GetServerConfig()
 
@@ -52,6 +60,11 @@ func NewService(logger zerolog.Logger, repo repository.Repository) (Service, err
 // SignUpUser hashes user password and adds user to the database,
 // returning user's uuid.
 func (s *service) SignUpUser(ctx context.Context, user *models.User) (string, error) {
+	if user == nil {
+		s.logger.Err(ErrNilArgument).Str("arg", "user").Msg("user can't be nil")
+		return "", ErrNilArgument
+	}
+
 	s.logger.Debug().Str("user", user.Login).Msg("checking if such user already exists")
 	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
 	if err != nil {
@@ -91,6 +104,11 @@ func (s *service) SignUpUser(ctx context.Context, user *models.User) (string, er
 // LoginUser checks whether user exists in the database and
 // if user's credentials are equals, logins user.
 func (s *service) LoginUser(ctx context.Context, user *models.User) (string, error) {
+	if user == nil {
+		s.logger.Err(ErrNilArgument).Str("arg", "user").Msg("user can't be nil")
+		return "", ErrNilArgument
+	}
+
 	s.logger.Debug().Str("user", user.Login).Msg("checking if such user exists")
 	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
 	if err != nil {

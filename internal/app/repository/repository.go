@@ -18,6 +18,9 @@ var (
 	// ErrNoUser is raised when client tries to get information about user
 	// which does not exist in the database.
 	ErrNoUser = errors.New("there is no such user in the database")
+	// ErrNilArgument is raised when client makes a call for a method without
+	// providing enough information.
+	ErrNilArgument = errors.New("argument can't be empty")
 )
 
 // Repository provides data layer methods.
@@ -63,6 +66,11 @@ func NewRepository(logger zerolog.Logger) (Repository, error) {
 
 // CreateUser adds new user entry to the database.
 func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
+	if user == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "user").Msg("user can't be nil")
+		return ErrNilArgument
+	}
+
 	r.logger.Debug().Str("user", user.Login).Msg("marshalling user's info to bson")
 	doc, err := bson.Marshal(user)
 	if err != nil {
@@ -166,6 +174,11 @@ func (r *repository) ReadUserByID(ctx context.Context, uuid uuid.UUID) (*models.
 
 // CreateItem adds new item entry to the database.
 func (r *repository) CreateItem(ctx context.Context, item interface{}, itemType string, userID uuid.UUID) error {
+	if item == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "item").Msg("item can't be nil")
+		return ErrNilArgument
+	}
+
 	id := userID.String()
 
 	r.logger.Debug().Str("user", id).Msg("preparing filter")

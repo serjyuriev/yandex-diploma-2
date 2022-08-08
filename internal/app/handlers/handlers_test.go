@@ -147,8 +147,7 @@ func TestUpdateItems(t *testing.T) {
 			UserID: uid.String(),
 		}
 		expectedUser := &g.User{
-			Login:    "test",
-			Password: "somepwd",
+			Login: "test",
 			Logins: []*g.LoginItem{
 				{
 					Login:    "one",
@@ -179,8 +178,7 @@ func TestUpdateItems(t *testing.T) {
 			},
 		}
 		dbUser := &models.User{
-			Login:    "test",
-			Password: "somepwd",
+			Login: "test",
 			Logins: []*models.LoginPasswordItem{
 				{
 					Login:    "one",

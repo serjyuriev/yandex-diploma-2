@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"sync"
 
 	"github.com/google/uuid"
@@ -13,6 +14,12 @@ import (
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/models"
 	g "github.com/serjyuriev/yandex-diploma-2/proto"
+)
+
+var (
+	// ErrNilArgument is raised when client makes a call for a method without
+	// providing enough information.
+	ErrNilArgument = errors.New("argument can't be empty")
 )
 
 // RPC holds objects for grpc implementation.
@@ -61,6 +68,11 @@ func MakeRPC(logger zerolog.Logger) (*RPC, error) {
 
 // SignUpUser signs new user up.
 func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignUpUserResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.SignUpUserResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.User.Login).Msg("received new user sign up request")
 	user := &models.User{
 		Login:     in.User.Login,
@@ -93,6 +105,11 @@ func (r *RPC) SignUpUser(ctx context.Context, in *g.SignUpUserRequest) (*g.SignU
 
 // LoginUser logins existing user.
 func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUserResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.LoginUserResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.User.Login).Msg("received user login request")
 	user := &models.User{
 		Login:    in.User.Login,
@@ -122,6 +139,11 @@ func (r *RPC) LoginUser(ctx context.Context, in *g.LoginUserRequest) (*g.LoginUs
 // UpdateItems returns fully updated user info,
 // including all available items.
 func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.UpdateItemsResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.UpdateItemsResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.UserID).Msg("received update request")
 	res := new(g.UpdateItemsResponse)
 	uid, err := uuid.Parse(in.UserID)
@@ -209,6 +231,11 @@ func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.Upd
 
 // AddLoginItem adds new login entry in the user's vault.
 func (r *RPC) AddLoginItem(ctx context.Context, in *g.AddLoginItemRequest) (*g.AddLoginItemResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.AddLoginItemResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.UserID).Msg("received new login item")
 	login := &models.LoginPasswordItem{
 		Login:    in.Item.Login,
@@ -247,6 +274,11 @@ func (r *RPC) AddLoginItem(ctx context.Context, in *g.AddLoginItemRequest) (*g.A
 
 // AddBankCardItem adds new bank card entry in the user's vault.
 func (r *RPC) AddBankCardItem(ctx context.Context, in *g.AddBankCardItemRequest) (*g.AddBankCardItemResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.AddBankCardItemResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.UserID).Msg("received new bank card item")
 	card := &models.BankCardItem{
 		Number:           in.Item.Number,
@@ -287,6 +319,11 @@ func (r *RPC) AddBankCardItem(ctx context.Context, in *g.AddBankCardItemRequest)
 
 // AddTextItem adds new text entry in the user's vault.
 func (r *RPC) AddTextItem(ctx context.Context, in *g.AddTextItemRequest) (*g.AddTextItemResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.AddTextItemResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.UserID).Msg("received new text item")
 	text := &models.TextItem{
 		Value: in.Item.Value,
@@ -324,6 +361,11 @@ func (r *RPC) AddTextItem(ctx context.Context, in *g.AddTextItemRequest) (*g.Add
 
 // AddBinaryItem adds new binary entry in the user's vault.
 func (r *RPC) AddBinaryItem(ctx context.Context, in *g.AddBinaryItemRequest) (*g.AddBinaryItemResponse, error) {
+	if in == nil {
+		r.logger.Err(ErrNilArgument).Str("arg", "in").Msg("grpc request is nil")
+		return &g.AddBinaryItemResponse{Error: ErrNilArgument.Error()}, ErrNilArgument
+	}
+
 	r.logger.Info().Str("user", in.UserID).Msg("received new binary item")
 	bin := &models.BinaryItem{
 		Value: in.Item.Value,

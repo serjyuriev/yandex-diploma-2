@@ -217,6 +217,19 @@ func TestReadUserByID(t *testing.T) {
 		_, err := repo.ReadUserByID(context.Background(), uid)
 		require.Error(t, err)
 	})
+
+	mt.Run("nil uuid", func(mt *mtest.T) {
+		repo := &repository{
+			cfg:    cfg,
+			logger: logger,
+			client: nil,
+			users:  mt.Coll,
+		}
+
+		uid := uuid.Nil
+		_, err := repo.ReadUserByID(context.Background(), uid)
+		require.Error(t, err)
+	})
 }
 
 func TestCreateItem(t *testing.T) {
