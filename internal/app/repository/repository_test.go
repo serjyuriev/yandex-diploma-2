@@ -194,7 +194,7 @@ func TestCreateItem(t *testing.T) {
 		uid := uuid.New()
 		item := &models.LoginPasswordItem{
 			Login:    "test",
-			Password: "test",
+			Password: []byte("test"),
 			Meta: map[string]string{
 				"one":   "two",
 				"three": "four",
@@ -219,7 +219,7 @@ func TestCreateItem(t *testing.T) {
 		uid := uuid.New()
 		item := &models.LoginPasswordItem{
 			Login:    "test",
-			Password: "test",
+			Password: []byte("test"),
 			Meta: map[string]string{
 				"one":   "two",
 				"three": "four",

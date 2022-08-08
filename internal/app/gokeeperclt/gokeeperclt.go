@@ -4,11 +4,13 @@ package gokeeperclt
 import (
 	"bufio"
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
 	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/rs/zerolog"
 	"github.com/serjyuriev/yandex-diploma-2/internal/pkg/config"
@@ -26,6 +28,8 @@ type Client struct {
 	user         *g.User
 	buildVersion string
 	buildDate    string
+	nonce        []byte
+	aesgcm       cipher.AEAD
 }
 
 // mode stores all flag values.
@@ -75,6 +79,17 @@ func NewClient(buildVersion string, buildDate string) (*Client, error) {
 
 	logger.Debug().Msg("initializing go-keeper client")
 
+	aesblock, err := aes.NewCipher([]byte(cfg.Key))
+	if err != nil {
+		logger.Err(err).Caller().Msg("unable to generate key")
+		return nil, err
+	}
+	aesgcm, err := cipher.NewGCM(aesblock)
+	if err != nil {
+		logger.Err(err).Caller().Msg("unable to generate key")
+		return nil, err
+	}
+
 	logger.Debug().Msg("creating gRPC client")
 	conn, err := grpc.Dial(
 		fmt.Sprintf("%s:%d", cfg.Server.Address, cfg.Server.Port),
@@ -101,6 +116,8 @@ func NewClient(buildVersion string, buildDate string) (*Client, error) {
 		user:         user,
 		buildVersion: buildVersion,
 		buildDate:    buildDate,
+		aesgcm:       aesgcm,
+		nonce:        []byte("123412341234"),
 	}, nil
 }
 
@@ -195,6 +212,16 @@ func (c *Client) Run() error {
 		}
 	}
 	return nil
+}
+
+func generateRandom(size int) ([]byte, error) {
+	b := make([]byte, size)
+	_, err := rand.Read(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 // signUpUser sends an rpc request to server
@@ -376,7 +403,7 @@ func (c *Client) getLoginItemFromUser() (*g.LoginItem, error) {
 		c.logger.Err(sc.Err()).Caller().Msg("unable to scan user input")
 		return nil, sc.Err()
 	}
-	item.Password = sc.Text()
+	item.Password = c.aesgcm.Seal(nil, c.nonce, []byte(sc.Text()), nil)
 
 	fmt.Println("Meta (leave field empty to stop):")
 	fmt.Println()
@@ -443,12 +470,7 @@ func (c *Client) getCardItemFromUser() (*g.BankCardItem, error) {
 		c.logger.Err(sc.Err()).Caller().Msg("unable to scan user input")
 		return nil, sc.Err()
 	}
-	code, err := strconv.Atoi(sc.Text())
-	if err != nil {
-		c.logger.Err(err).Caller().Msg("unable to parse security code")
-		return nil, err
-	}
-	item.CardSecurityCode = int32(code)
+	item.CardSecurityCode = c.aesgcm.Seal(nil, c.nonce, []byte(sc.Text()), nil)
 
 	fmt.Println("Meta (leave field empty to stop):")
 	fmt.Println()
@@ -575,7 +597,12 @@ func (c *Client) displayLoginItems() {
 	}
 	for _, item := range c.user.Logins {
 		fmt.Printf("Login: %s\n", item.Login)
-		fmt.Printf("Password: %s\n", item.Password)
+		pwd, err := c.aesgcm.Open(nil, c.nonce, item.Password, nil)
+		if err != nil {
+			c.logger.Err(err).Caller().Msg("unable to decypher password")
+			return
+		}
+		fmt.Printf("Password: %s\n", pwd)
 		fmt.Println("Meta:")
 		for k, v := range item.Meta {
 			fmt.Printf("\t%s: %v\n", k, v)
@@ -596,7 +623,12 @@ func (c *Client) displayCardItems() {
 		fmt.Printf("Holder: %s\n", item.Holder)
 		fmt.Printf("Number: %s\n", item.Number)
 		fmt.Printf("Expires: %s\n", item.Expires)
-		fmt.Printf("Security code: %d\n", item.CardSecurityCode)
+		code, err := c.aesgcm.Open(nil, c.nonce, item.CardSecurityCode, nil)
+		if err != nil {
+			c.logger.Err(err).Caller().Msg("unable to decypher security code")
+			return
+		}
+		fmt.Printf("Security code: %s\n", code)
 		fmt.Println("Meta:")
 		for k, v := range item.Meta {
 			fmt.Printf("\t%s: %v\n", k, v)

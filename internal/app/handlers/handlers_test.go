@@ -169,7 +169,7 @@ func TestUpdateItems(t *testing.T) {
 			Logins: []*g.LoginItem{
 				{
 					Login:    "one",
-					Password: "two",
+					Password: []byte("two"),
 					Meta:     nil,
 				},
 			},
@@ -178,7 +178,7 @@ func TestUpdateItems(t *testing.T) {
 					Number:           "",
 					Holder:           "",
 					Expires:          "",
-					CardSecurityCode: 123,
+					CardSecurityCode: []byte("123"),
 					Meta:             nil,
 				},
 			},
@@ -200,7 +200,7 @@ func TestUpdateItems(t *testing.T) {
 			Logins: []*models.LoginPasswordItem{
 				{
 					Login:    "one",
-					Password: "two",
+					Password: []byte("two"),
 					Meta:     nil,
 				},
 			},
@@ -209,7 +209,7 @@ func TestUpdateItems(t *testing.T) {
 					Number:           "",
 					Holder:           "",
 					Expires:          "",
-					CardSecurityCode: 123,
+					CardSecurityCode: []byte("123"),
 					Meta:             nil,
 				},
 			},
@@ -302,7 +302,7 @@ func TestAddLoginItem(t *testing.T) {
 		in := &g.AddLoginItemRequest{
 			Item: &g.LoginItem{
 				Login:    "test",
-				Password: "somepwd",
+				Password: []byte("somepwd"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",
@@ -334,7 +334,7 @@ func TestAddLoginItem(t *testing.T) {
 		in := &g.AddLoginItemRequest{
 			Item: &g.LoginItem{
 				Login:    "test",
-				Password: "somepwd",
+				Password: []byte("somepwd"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",
@@ -364,7 +364,7 @@ func TestAddLoginItem(t *testing.T) {
 		in := &g.AddLoginItemRequest{
 			Item: &g.LoginItem{
 				Login:    "test",
-				Password: "somepwd",
+				Password: []byte("somepwd"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",
@@ -407,7 +407,7 @@ func TestAddBankCardItem(t *testing.T) {
 				Number:           "",
 				Holder:           "",
 				Expires:          "",
-				CardSecurityCode: 12,
+				CardSecurityCode: []byte("12"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",
@@ -441,7 +441,7 @@ func TestAddBankCardItem(t *testing.T) {
 				Number:           "",
 				Holder:           "",
 				Expires:          "",
-				CardSecurityCode: 12,
+				CardSecurityCode: []byte("12"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",
@@ -473,7 +473,7 @@ func TestAddBankCardItem(t *testing.T) {
 				Number:           "",
 				Holder:           "",
 				Expires:          "",
-				CardSecurityCode: 12,
+				CardSecurityCode: []byte("12"),
 				Meta: map[string]string{
 					"one":   "two",
 					"three": "four",

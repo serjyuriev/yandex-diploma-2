@@ -31,7 +31,8 @@ type ClientConfig struct {
 		Address string `yaml:"address"`
 		Port    int    `yaml:"port"`
 	} `yaml:"server"`
-	IsDebug bool `yaml:"is_debug"`
+	IsDebug bool   `yaml:"is_debug"`
+	Key     string `yaml:"key"`
 }
 
 var (
@@ -67,7 +68,7 @@ func GetServerConfig() ServerConfig {
 func GetClientConfig() ClientConfig {
 	once.Do(func() {
 		var configPath string
-		flag.StringVar(&configPath, "c", "", "yaml config file")
+		flag.StringVar(&configPath, "c", "A:\\dev\\yandex\\yandex-diploma-2\\dev_clt_config.yaml", "yaml config file")
 		flag.Parse()
 
 		clientCfg = &ClientConfig{}

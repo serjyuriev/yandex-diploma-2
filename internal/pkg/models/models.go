@@ -20,7 +20,7 @@ type User struct {
 // single login-password entry.
 type LoginPasswordItem struct {
 	Login    string            `bson:"login"`
-	Password string            `bson:"password"`
+	Password []byte            `bson:"password"`
 	Meta     map[string]string `bson:"meta"`
 }
 
@@ -29,7 +29,7 @@ type BankCardItem struct {
 	Number           string            `bson:"number"`
 	Holder           string            `bson:"holder"`
 	Expires          string            `bson:"expires"`
-	CardSecurityCode int               `bson:"csc"`
+	CardSecurityCode []byte            `bson:"csc"`
 	Meta             map[string]string `bson:"meta"`
 }
 

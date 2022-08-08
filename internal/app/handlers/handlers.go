@@ -191,7 +191,7 @@ func (r *RPC) UpdateItems(ctx context.Context, in *g.UpdateItemsRequest) (*g.Upd
 				Number:           item.Number,
 				Holder:           item.Holder,
 				Expires:          item.Expires,
-				CardSecurityCode: int32(item.CardSecurityCode),
+				CardSecurityCode: item.CardSecurityCode,
 				Meta:             item.Meta,
 			}
 		}
@@ -284,7 +284,7 @@ func (r *RPC) AddBankCardItem(ctx context.Context, in *g.AddBankCardItemRequest)
 		Number:           in.Item.Number,
 		Holder:           in.Item.Holder,
 		Expires:          in.Item.Expires,
-		CardSecurityCode: int(in.Item.CardSecurityCode),
+		CardSecurityCode: in.Item.CardSecurityCode,
 		Meta:             in.Item.Meta,
 	}
 	res := new(g.AddBankCardItemResponse)
