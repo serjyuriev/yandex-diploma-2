@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"errors"
 	"flag"
 	"fmt"
@@ -212,16 +211,6 @@ func (c *Client) Run() error {
 		}
 	}
 	return nil
-}
-
-func generateRandom(size int) ([]byte, error) {
-	b := make([]byte, size)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
 }
 
 // signUpUser sends an rpc request to server
