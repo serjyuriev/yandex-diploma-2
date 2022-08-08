@@ -21,6 +21,8 @@ var (
 	// ErrNilArgument is raised when client makes a call for a method without
 	// providing enough information.
 	ErrNilArgument = errors.New("argument can't be empty")
+	// ErrUserExists is raised when client tries to create already existing in the database user.
+	ErrUserExists = errors.New("user already exists")
 )
 
 // Repository provides data layer methods.
@@ -69,6 +71,21 @@ func (r *repository) CreateUser(ctx context.Context, user *models.User) error {
 	if user == nil {
 		r.logger.Err(ErrNilArgument).Str("arg", "user").Msg("user can't be nil")
 		return ErrNilArgument
+	}
+
+	r.logger.Debug().Str("user", user.Login).Msg("checking if such user already exists")
+	dbUser, err := r.ReadUserByLogin(ctx, user.Login)
+	if err == nil && user.Login == dbUser.Login {
+		r.logger.Info().Str("user", user.Login).Msg("user with provided login already exists in the system")
+		return ErrUserExists
+	}
+	if err != nil && err != ErrNoUser {
+		r.logger.
+			Err(err).
+			Caller().
+			Str("user", user.Login).
+			Msg("unable to check if user already exists")
+		return err
 	}
 
 	r.logger.Debug().Str("user", user.Login).Msg("marshalling user's info to bson")

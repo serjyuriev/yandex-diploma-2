@@ -17,8 +17,6 @@ import (
 var (
 	// ErrInvalidCredentails is raised when provided user's credentials are not correct.
 	ErrInvalidCredentials = errors.New("login and/or password incorrect")
-	// ErrUserExists is raised when client tries to create already existing in the database user.
-	ErrUserExists = errors.New("user already exists")
 	// ErrUserNotExists is raised when client tries to login with non-existing user.
 	ErrUserNotExists = errors.New("user doesn't exist")
 	// ErrNilArgument is raised when client makes a call for a method without
@@ -63,23 +61,6 @@ func (s *service) SignUpUser(ctx context.Context, user *models.User) (string, er
 	if user == nil {
 		s.logger.Err(ErrNilArgument).Str("arg", "user").Msg("user can't be nil")
 		return "", ErrNilArgument
-	}
-
-	s.logger.Debug().Str("user", user.Login).Msg("checking if such user already exists")
-	dbUser, err := s.repo.ReadUserByLogin(ctx, user.Login)
-	if err != nil {
-		if err != repository.ErrNoUser {
-			s.logger.
-				Err(err).
-				Caller().
-				Str("user", user.Login).
-				Msg("unable to check if user already exists")
-			return "", err
-		}
-	}
-	if err == nil && user.Login == dbUser.Login {
-		s.logger.Info().Str("user", user.Login).Msg("user with provided login already exists in the system")
-		return "", ErrUserExists
 	}
 
 	s.logger.Debug().Str("user", user.Login).Msg("generating user's uuid")

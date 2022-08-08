@@ -48,17 +48,12 @@ func TestSignUpUser(t *testing.T) {
 			Texts:     make([]*models.TextItem, 0),
 			Binaries:  make([]*models.BinaryItem, 0),
 		}
-
-		read := mr.EXPECT().ReadUserByLogin(
-			context.Background(),
-			gomock.Eq("test"),
-		).Return(nil, repository.ErrNoUser)
 		create := mr.EXPECT().CreateUser(
 			context.Background(),
-			newUser,
+			gomock.Any(),
 		).Return(nil)
 
-		gomock.InOrder(read, create)
+		gomock.InOrder(create)
 
 		svc := &service{
 			cfg:    config.ServerConfig{Salt: "testsalt"},
@@ -67,46 +62,6 @@ func TestSignUpUser(t *testing.T) {
 		}
 		_, err := svc.SignUpUser(context.Background(), newUser)
 		require.NoError(t, err)
-	})
-
-	t.Run("read err", func(t *testing.T) {
-		newUser := &models.User{
-			Login: "test",
-		}
-
-		read := mr.EXPECT().ReadUserByLogin(
-			context.Background(),
-			gomock.Eq("test"),
-		).Return(nil, fmt.Errorf("some err"))
-		gomock.InOrder(read)
-
-		svc := &service{
-			cfg:    config.ServerConfig{Salt: "testsalt"},
-			repo:   mr,
-			logger: logger,
-		}
-		_, err := svc.SignUpUser(context.Background(), newUser)
-		require.Error(t, err)
-	})
-
-	t.Run("existing user", func(t *testing.T) {
-		newUser := &models.User{
-			Login: "test",
-		}
-
-		read := mr.EXPECT().ReadUserByLogin(
-			context.Background(),
-			gomock.Eq("test"),
-		).Return(newUser, nil)
-		gomock.InOrder(read)
-
-		svc := &service{
-			cfg:    config.ServerConfig{Salt: "testsalt"},
-			repo:   mr,
-			logger: logger,
-		}
-		_, err := svc.SignUpUser(context.Background(), newUser)
-		require.ErrorIs(t, err, ErrUserExists)
 	})
 
 	t.Run("create err", func(t *testing.T) {
@@ -118,17 +73,12 @@ func TestSignUpUser(t *testing.T) {
 			Texts:     make([]*models.TextItem, 0),
 			Binaries:  make([]*models.BinaryItem, 0),
 		}
-
-		read := mr.EXPECT().ReadUserByLogin(
-			context.Background(),
-			gomock.Eq("test"),
-		).Return(nil, repository.ErrNoUser)
 		create := mr.EXPECT().CreateUser(
 			context.Background(),
 			newUser,
 		).Return(fmt.Errorf("some err"))
 
-		gomock.InOrder(read, create)
+		gomock.InOrder(create)
 
 		svc := &service{
 			cfg:    config.ServerConfig{Salt: "testsalt"},

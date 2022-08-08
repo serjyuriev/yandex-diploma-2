@@ -77,6 +77,15 @@ func TestSignUpUser(t *testing.T) {
 		_, err := rpc.SignUpUser(context.Background(), in)
 		require.Error(t, err)
 	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			svc:    ms,
+		}
+		_, err := rpc.SignUpUser(context.Background(), nil)
+		require.Error(t, err)
+	})
 }
 
 func TestLoginUser(t *testing.T) {
@@ -128,6 +137,15 @@ func TestLoginUser(t *testing.T) {
 			svc:    ms,
 		}
 		_, err := rpc.LoginUser(context.Background(), in)
+		require.Error(t, err)
+	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			svc:    ms,
+		}
+		_, err := rpc.LoginUser(context.Background(), nil)
 		require.Error(t, err)
 	})
 }
@@ -259,6 +277,15 @@ func TestUpdateItems(t *testing.T) {
 		_, err := rpc.UpdateItems(context.Background(), in)
 		require.Error(t, err)
 	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			repo:   mr,
+		}
+		_, err := rpc.UpdateItems(context.Background(), nil)
+		require.Error(t, err)
+	})
 }
 
 func TestAddLoginItem(t *testing.T) {
@@ -351,6 +378,15 @@ func TestAddLoginItem(t *testing.T) {
 			repo:   mr,
 		}
 		_, err := rpc.AddLoginItem(context.Background(), in)
+		require.Error(t, err)
+	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			repo:   mr,
+		}
+		_, err := rpc.AddLoginItem(context.Background(), nil)
 		require.Error(t, err)
 	})
 }
@@ -453,6 +489,15 @@ func TestAddBankCardItem(t *testing.T) {
 		_, err := rpc.AddBankCardItem(context.Background(), in)
 		require.Error(t, err)
 	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			repo:   mr,
+		}
+		_, err := rpc.AddBankCardItem(context.Background(), nil)
+		require.Error(t, err)
+	})
 }
 
 func TestAddTextItem(t *testing.T) {
@@ -544,6 +589,15 @@ func TestAddTextItem(t *testing.T) {
 		_, err := rpc.AddTextItem(context.Background(), in)
 		require.Error(t, err)
 	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			repo:   mr,
+		}
+		_, err := rpc.AddTextItem(context.Background(), nil)
+		require.Error(t, err)
+	})
 }
 
 func TestAddBinaryItem(t *testing.T) {
@@ -633,6 +687,15 @@ func TestAddBinaryItem(t *testing.T) {
 			repo:   mr,
 		}
 		_, err := rpc.AddBinaryItem(context.Background(), in)
+		require.Error(t, err)
+	})
+
+	t.Run("nil request", func(t *testing.T) {
+		rpc := &RPC{
+			logger: logger,
+			repo:   mr,
+		}
+		_, err := rpc.AddBinaryItem(context.Background(), nil)
 		require.Error(t, err)
 	})
 }

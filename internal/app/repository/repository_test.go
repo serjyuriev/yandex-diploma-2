@@ -27,66 +27,6 @@ func TestNewRepository(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCreateUser(t *testing.T) {
-	cfg := config.ServerConfig{}
-	output := zerolog.ConsoleWriter{
-		Out:        os.Stdout,
-		TimeFormat: "02-01-2006 15:04:05 MST",
-	}
-	logger := zerolog.New(output).With().Timestamp().Logger()
-
-	mt := mtest.New(t, mtest.NewOptions().ClientType(mtest.Mock))
-	defer mt.Close()
-
-	mt.Run("success", func(mt *mtest.T) {
-		repo := &repository{
-			cfg:    cfg,
-			logger: logger,
-			client: nil,
-			users:  mt.Coll,
-		}
-
-		user := &models.User{
-			ID:        uuid.New(),
-			Login:     "tester",
-			Password:  "somepwd",
-			Logins:    make([]*models.LoginPasswordItem, 0),
-			BankCards: make([]*models.BankCardItem, 0),
-			Texts:     make([]*models.TextItem, 0),
-			Binaries:  make([]*models.BinaryItem, 0),
-		}
-
-		mt.AddMockResponses(mtest.CreateSuccessResponse())
-
-		err := repo.CreateUser(context.Background(), user)
-		require.NoError(t, err)
-	})
-
-	mt.Run("insert err", func(mt *mtest.T) {
-		repo := &repository{
-			cfg:    cfg,
-			logger: logger,
-			client: nil,
-			users:  mt.Coll,
-		}
-
-		user := &models.User{
-			ID:        uuid.New(),
-			Login:     "tester",
-			Password:  "somepwd",
-			Logins:    make([]*models.LoginPasswordItem, 0),
-			BankCards: make([]*models.BankCardItem, 0),
-			Texts:     make([]*models.TextItem, 0),
-			Binaries:  make([]*models.BinaryItem, 0),
-		}
-
-		mt.AddMockResponses(bson.D{{Key: "ok", Value: 0}})
-
-		err := repo.CreateUser(context.Background(), user)
-		require.Error(t, err)
-	})
-}
-
 func TestReadUserByLogin(t *testing.T) {
 	cfg := config.ServerConfig{}
 	output := zerolog.ConsoleWriter{
