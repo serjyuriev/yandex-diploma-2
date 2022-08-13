@@ -1,0 +1,113 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package proto.server;
+
+option go_package = "proto/server";
+
+message User {
+    string login = 1;
+    string password = 2;
+    repeated LoginItem logins = 3;
+    repeated BankCardItem cards = 4;
+    repeated TextItem texts = 5;
+    repeated BinaryItem binaries = 6;
+}
+
+message LoginItem {
+    string login = 1;
+    bytes password = 2;
+    map<string, string> meta = 3;
+}
+
+message BankCardItem {
+    string number = 1;
+    string holder = 2;
+    string expires = 3;
+    bytes cardSecurityCode = 4;
+    map<string, string> meta = 5;
+}
+
+message TextItem {
+    string value = 1;
+    map<string, string> meta = 2;
+}
+
+message BinaryItem {
+    bytes value = 1;
+    map<string, string> meta = 2;
+}
+
+message SignUpUserRequest {
+    User user = 1;
+}
+
+message SignUpUserResponse {
+    string userID = 1;
+    string error = 2;
+}
+
+message LoginUserRequest {
+    User user = 1;
+}
+
+message LoginUserResponse {
+    string userID = 1;
+    string error = 2;
+}
+
+message UpdateItemsRequest {
+    string userID = 1;
+}
+
+message UpdateItemsResponse {
+    User user = 1;
+    string error = 2;
+}
+
+message AddLoginItemRequest {
+    LoginItem item = 1;
+    string userID = 2;
+}
+
+message AddLoginItemResponse {
+    string error = 1;
+}
+
+message AddBankCardItemRequest {
+    BankCardItem item = 1;
+    string userID = 2;
+}
+
+message AddBankCardItemResponse {
+    string error = 1;
+}
+
+message AddTextItemRequest {
+    TextItem item = 1;
+    string userID = 2;
+}
+
+message AddTextItemResponse {
+    string error = 1;
+}
+
+message AddBinaryItemRequest {
+    BinaryItem item = 1;
+    string userID = 2;
+}
+
+message AddBinaryItemResponse {
+    string error = 1;
+}
+
+service Gokeeper {
+    rpc SignUpUser(SignUpUserRequest) returns (SignUpUserResponse);
+    rpc LoginUser(LoginUserRequest) returns (LoginUserResponse);
+    rpc UpdateItems(UpdateItemsRequest) returns (UpdateItemsResponse);
+    rpc AddLoginItem(AddLoginItemRequest) returns (AddLoginItemResponse);
+    rpc AddBankCardItem(AddBankCardItemRequest) returns (AddBankCardItemResponse);
+    rpc AddTextItem(AddTextItemRequest) returns (AddTextItemResponse);
+    rpc AddBinaryItem(AddBinaryItemRequest) returns (AddBinaryItemResponse);
+}
